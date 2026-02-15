@@ -1,11 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('admins')
 export class AdminsController {
-  constructor(private readonly adminsService: AdminsService) {}
+  constructor(
+    private readonly adminsService: AdminsService,
+    private configService: ConfigService,
+  ) {}
 
   @Post()
   create(@Body() createAdminDto: CreateAdminDto) {
@@ -14,6 +26,8 @@ export class AdminsController {
 
   @Get()
   findAll() {
+    const roles = this.configService.get<string[]>('roles.adminRoles');
+    console.log(roles);
     return this.adminsService.findAll();
   }
 
