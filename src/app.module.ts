@@ -9,6 +9,8 @@ import { ProductsModule } from './modules/products/products.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { LoggerMiddleware } from './common/middleware/logger/logger.middleware';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './modules/auth/auth.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 
 @Module({
   controllers: [AppController],
@@ -22,6 +24,8 @@ import { ConfigModule } from '@nestjs/config';
     CustomersModule,
     ProductsModule,
     AdminsModule,
+    AuthModule,
+    CategoriesModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -3,5 +3,6 @@ export class CreateAdminDto {
   lastName: string;
   email: string;
   password: string;
+  phoneNumber: string;
   role: string;
 }

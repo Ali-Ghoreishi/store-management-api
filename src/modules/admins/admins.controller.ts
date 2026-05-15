@@ -16,7 +16,7 @@ import { ConfigService } from '@nestjs/config';
 export class AdminsController {
   constructor(
     private readonly adminsService: AdminsService,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
   ) {}
 
   @Post()
@@ -31,10 +31,10 @@ export class AdminsController {
     return this.adminsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.adminsService.findOne(+id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.adminsService.findOne();
+  // }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
