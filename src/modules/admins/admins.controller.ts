@@ -24,25 +24,23 @@ export class AdminsController {
     return this.adminsService.create(createAdminDto);
   }
 
-  @Get()
-  findAll() {
-    const roles = this.configService.get<string[]>('roles.adminRoles');
-    console.log(roles);
-    return this.adminsService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.adminsService.findAll();
+  // }
 
   // @Get(':id')
   // findOne(@Param('id') id: string) {
   //   return this.adminsService.findOne();
   // }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
-    return this.adminsService.update(+id, updateAdminDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
+  //   return this.adminsService.update(+id, updateAdminDto);
+  // }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.adminsService.remove(+id);
-  }
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.adminsService.remove(+id);
+  // }
 }

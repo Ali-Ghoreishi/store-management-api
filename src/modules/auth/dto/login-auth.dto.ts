@@ -1,4 +1,5 @@
 import {
+  IsOptional,
   IsString,
   IsEmail,
   IsEnum,
@@ -6,6 +7,7 @@ import {
   MaxLength,
   IsNotEmpty,
   Length,
+  IsIn,
 } from 'class-validator';
 
 export class LoginAuthDto {
@@ -13,11 +15,21 @@ export class LoginAuthDto {
   @IsNotEmpty()
   email: string;
 
+  @IsOptional()
   @IsString()
   @MinLength(6)
   @MaxLength(50)
-  @IsNotEmpty()
-  password: string;
+  password?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['password', 'otp'])
+  loginType: 'password' | 'otp';
+
+  @IsOptional()
+  @IsString()
+  @Length(6, 6)
+  code?: string;
 }
 
 export class LoginAdminDto extends LoginAuthDto {}
