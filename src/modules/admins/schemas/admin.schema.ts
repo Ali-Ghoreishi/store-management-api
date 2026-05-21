@@ -32,14 +32,17 @@ export class Admin {
   @Prop({ default: Role.Manager, enum: [Role.Admin, Role.Manager] })
   role: Role;
 
-  @Prop({ type: Date, default: null })
-  lastLoginAt: Date;
-
   @Prop({ default: AdminStatus.Active, enum: AdminStatus })
   status: AdminStatus;
 
   @Prop({ default: false })
   deleted: boolean;
+
+  @Prop({ type: Date, default: null })
+  deletedAt: Date;
+
+  @Prop({ type: Date, default: null })
+  lastLoginAt: Date;
 }
 
 export const AdminSchema = SchemaFactory.createForClass(Admin);

@@ -1770,6 +1770,49 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nestjs/microservices@npm:^11.1.21":
+  version: 11.1.21
+  resolution: "@nestjs/microservices@npm:11.1.21"
+  dependencies:
+    iterare: "npm:1.2.1"
+    tslib: "npm:2.8.1"
+  peerDependencies:
+    "@grpc/grpc-js": "*"
+    "@nestjs/common": ^11.0.0
+    "@nestjs/core": ^11.0.0
+    "@nestjs/websockets": ^11.0.0
+    amqp-connection-manager: "*"
+    amqplib: "*"
+    cache-manager: "*"
+    ioredis: "*"
+    kafkajs: "*"
+    mqtt: "*"
+    nats: "*"
+    reflect-metadata: ^0.1.12 || ^0.2.0
+    rxjs: ^7.1.0
+  peerDependenciesMeta:
+    "@grpc/grpc-js":
+      optional: true
+    "@nestjs/websockets":
+      optional: true
+    amqp-connection-manager:
+      optional: true
+    amqplib:
+      optional: true
+    cache-manager:
+      optional: true
+    ioredis:
+      optional: true
+    kafkajs:
+      optional: true
+    mqtt:
+      optional: true
+    nats:
+      optional: true
+  checksum: 10c0/3cefbbe5fcbc3b99d4f82dca9b2291b9f51bda1f4348c7a0ea1ef78d3fe228171d94839bf7e8e3c63147e9ad238040bb0129748ace9f15ada336c2a7d38a76ff
+  languageName: node
+  linkType: hard
+
 "@nestjs/mongoose@npm:^11.0.4":
   version: 11.0.4
   resolution: "@nestjs/mongoose@npm:11.0.4"
@@ -2110,6 +2153,15 @@ __metadata:
   dependencies:
     tslib: "npm:^2.4.0"
   checksum: 10c0/b255094f293794c6d2289300c5fbcafbb5532a3aed3a5ffd2f8dc1828e639b88d75f6a376dd8f94347a44813fd7a7149d8463477a9a49525c8b2dcaa38c2d1e8
+  languageName: node
+  linkType: hard
+
+"@types/amqplib@npm:^0.10.8":
+  version: 0.10.8
+  resolution: "@types/amqplib@npm:0.10.8"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/9c5ab2e22f2b8dc2ace235d520bbae9453a0f4152b4f84ffa15a313f8840fe31bbf8b454e036f168a178cc44ed73bd3492e9c9cee425e3fcfef8cd5073141bfa
   languageName: node
   linkType: hard
 
@@ -3187,6 +3239,24 @@ __metadata:
     esprima: "npm:^1.2.0"
     estraverse: "npm:^1.5.0"
   checksum: 10c0/ece85d4cceb25a6c182a6f94c6f67e50205a55f48c30ff9cf3088c35d452dc275f6586d9f8c6f66471ad970700dc08093e25d6fce5578b001444af8014251275
+  languageName: node
+  linkType: hard
+
+"amqp-connection-manager@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "amqp-connection-manager@npm:5.0.0"
+  dependencies:
+    promise-breaker: "npm:^6.0.0"
+  peerDependencies:
+    amqplib: "*"
+  checksum: 10c0/5dfbbe07c5f58dad96bbeb4a8cbf8d6736672d5e2d82630dee0fecd9d1e437fea8a07f893ed71b88ef1777f833d63d26dc4daf4ac4604367bcc6167fac971f77
+  languageName: node
+  linkType: hard
+
+"amqplib@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "amqplib@npm:2.0.1"
+  checksum: 10c0/4de6dd3ac92bf59c5d7f00c4948a44288fca1a0abeae8f038c037dfc94bc485fc8c16c6d43759b7e50319b43aa0aff18b8b7566b2b3fbf25b3bf7039b80b3537
   languageName: node
   linkType: hard
 
@@ -9287,6 +9357,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"promise-breaker@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "promise-breaker@npm:6.0.0"
+  checksum: 10c0/fcd00836dd96d34d3376964bc3a9482251248cef00f0dcf1f2485e7d9af44f9c48b0431cf4dc780fd5a7137b8e0861e3c6557667811522e93978f6bffab66cfe
+  languageName: node
+  linkType: hard
+
 "promise-retry@npm:^2.0.1":
   version: 2.0.1
   resolution: "promise-retry@npm:2.0.1"
@@ -10084,6 +10161,7 @@ __metadata:
     "@nestjs/core": "npm:^11.0.1"
     "@nestjs/jwt": "npm:^11.0.2"
     "@nestjs/mapped-types": "npm:*"
+    "@nestjs/microservices": "npm:^11.1.21"
     "@nestjs/mongoose": "npm:^11.0.4"
     "@nestjs/passport": "npm:^11.0.5"
     "@nestjs/platform-express": "npm:^11.0.1"
@@ -10091,6 +10169,7 @@ __metadata:
     "@nestjs/serve-static": "npm:^5.0.5"
     "@nestjs/swagger": "npm:^11.4.2"
     "@nestjs/testing": "npm:^11.0.1"
+    "@types/amqplib": "npm:^0.10.8"
     "@types/bcryptjs": "npm:^3.0.0"
     "@types/compression": "npm:^1"
     "@types/cookie-parser": "npm:^1.4.10"
@@ -10107,6 +10186,8 @@ __metadata:
     "@types/supertest": "npm:^6.0.2"
     "@types/uuid": "npm:^11.0.0"
     "@types/validator": "npm:^13.15.10"
+    amqp-connection-manager: "npm:^5.0.0"
+    amqplib: "npm:^2.0.1"
     axios: "npm:^1.16.1"
     bcryptjs: "npm:^3.0.3"
     class-transformer: "npm:^0.5.1"

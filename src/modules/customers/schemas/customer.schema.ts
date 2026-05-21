@@ -43,6 +43,9 @@ export class Customer {
 
   @Prop({ default: false })
   deleted: boolean;
+
+  @Prop({ type: Date, default: null })
+  deletedAt: Date;
 }
 
 export const CustomerSchema = SchemaFactory.createForClass(Customer);

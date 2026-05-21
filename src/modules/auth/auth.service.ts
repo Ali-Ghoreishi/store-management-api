@@ -21,8 +21,9 @@ export class AuthService {
   ) {}
 
   async registerAdmin(registerAdminDto: RegisterAdminDto) {
-    const newAdmin = await this.adminsService.create(registerAdminDto);
-    return Res.created(newAdmin);
+    const result = await this.adminsService.create(registerAdminDto);
+    if (result.error) return Res.error(result.message, result.status);
+    else return Res.created(result.data, result.message);
   }
 
   async loginAdmin(loginAdminDto: LoginAdminDto) {
