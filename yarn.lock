@@ -1537,9 +1537,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs-modules/mailer@npm:^2.3.4":
-  version: 2.3.4
-  resolution: "@nestjs-modules/mailer@npm:2.3.4"
+"@nestjs-modules/mailer@npm:^2.3.6":
+  version: 2.3.6
+  resolution: "@nestjs-modules/mailer@npm:2.3.6"
   dependencies:
     "@css-inline/css-inline": "npm:0.20.0"
     "@types/ejs": "npm:^3.1.5"
@@ -1547,8 +1547,8 @@ __metadata:
     "@types/pug": "npm:^2.0.10"
     ejs: "npm:^5.0.1"
     glob: "npm:13.0.6"
-    handlebars: "npm:^4.7.8"
-    liquidjs: "npm:^10.25.1"
+    handlebars: "npm:^4.7.9"
+    liquidjs: "npm:^10.25.7"
     mjml: "npm:^5.0.0-alpha.4"
     nunjucks: "npm:^3.2.4"
     preview-email: "npm:^3.1.1"
@@ -1564,10 +1564,10 @@ __metadata:
     "@types/pug": ">=2.0.6"
     bullmq: ">=4.0.0"
     ejs: ">=3.1.2"
-    handlebars: ">=4.7.6"
-    liquidjs: ">=10.8.2"
+    handlebars: ">=4.7.9"
+    liquidjs: ">=10.25.5"
     mjml: ">=4.15.3"
-    nodemailer: ">=6.4.6"
+    nodemailer: ">=8.0.5"
     nunjucks: ">=3.2.0"
     preview-email: ">=3.0.19"
     pug: ">=3.0.1"
@@ -1619,7 +1619,7 @@ __metadata:
       optional: true
     pug:
       optional: true
-  checksum: 10c0/7983779be9f848c18ee7e225b63e47a231fe6ff3c222a91efff168acc7df2dcc906af527c31be62f8620252fc578b77f1a7415961e4b98bca5089d79d8e367ac
+  checksum: 10c0/a48117f9adc6cbb054bc51c0622a9effbb53acc8265e9f6a9ae59e4c41d28f10f28c03e67478452aebe20146fe2debb32babeebe8c211b0c5705018e07594f14
   languageName: node
   linkType: hard
 
@@ -5904,6 +5904,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"handlebars@npm:^4.7.9":
+  version: 4.7.9
+  resolution: "handlebars@npm:4.7.9"
+  dependencies:
+    minimist: "npm:^1.2.5"
+    neo-async: "npm:^2.6.2"
+    source-map: "npm:^0.6.1"
+    uglify-js: "npm:^3.1.4"
+    wordwrap: "npm:^1.0.0"
+  dependenciesMeta:
+    uglify-js:
+      optional: true
+  bin:
+    handlebars: bin/handlebars
+  checksum: 10c0/22f8105a7e68e81aff2662bb434edf05f757d21d850731d71cec886d69c10cd33d3c43e34b2892968ec62de8241611851d3d0674c8ef324ea3e01dc66262faa9
+  languageName: node
+  linkType: hard
+
 "has-flag@npm:^4.0.0":
   version: 4.0.0
   resolution: "has-flag@npm:4.0.0"
@@ -7232,15 +7250,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"liquidjs@npm:^10.25.1":
-  version: 10.25.7
-  resolution: "liquidjs@npm:10.25.7"
+"liquidjs@npm:^10.25.7":
+  version: 10.27.0
+  resolution: "liquidjs@npm:10.27.0"
   dependencies:
     commander: "npm:^10.0.0"
   bin:
     liquid: bin/liquid.js
     liquidjs: bin/liquid.js
-  checksum: 10c0/0e2ae1805720494816e9373cb60c608aabc9f9f328470e9af582a38ce943725c83964400d6e1afe72763cee40be58f33a993ed5902c545359a4c36524c3dc25e
+  checksum: 10c0/49dfcc471d6130139bf093a84f7ebedf8e918f8b9d3b9e7e187c79ad1bdea429e5f162db1bce616d6ed3766f792b4019b9e438452f5706b0b0485ebc570a89d9
   languageName: node
   linkType: hard
 
@@ -10154,7 +10172,7 @@ __metadata:
     "@eslint/eslintrc": "npm:^3.2.0"
     "@eslint/js": "npm:^9.18.0"
     "@nestjs-modules/ioredis": "npm:^2.2.1"
-    "@nestjs-modules/mailer": "npm:^2.3.4"
+    "@nestjs-modules/mailer": "npm:^2.3.6"
     "@nestjs/cli": "npm:^11.0.0"
     "@nestjs/common": "npm:^11.0.1"
     "@nestjs/config": "npm:^4.0.3"

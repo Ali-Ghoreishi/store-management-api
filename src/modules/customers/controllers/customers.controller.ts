@@ -7,9 +7,17 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { CustomersService } from './customers.service';
-import { CreateCustomerDto } from './dto/create-customer.dto';
-import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { CustomersService } from '../customers.service';
+import {
+  CreateCustomerDto,
+  AdminCreateCustomerDto,
+} from '../dto/create-customer.dto';
+import {
+  UpdateCustomerDto,
+  AdminUpdateCustomerDto,
+} from '../dto/update-customer.dto';
+import { UpdateQuery } from 'mongoose';
+import { Customer } from '../schemas/customer.schema';
 
 @Controller('customers')
 export class CustomersController {
@@ -30,10 +38,16 @@ export class CustomersController {
   //   return this.customersService.findOne(+id);
   // }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto) {
-  //   return this.customersService.update(+id, updateCustomerDto);
-  // }
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateCustomerDto: UpdateCustomerDto,
+  ) {
+    return this.customersService.updateOne(
+      { _id: +id },
+      { $set: updateCustomerDto },
+    );
+  }
 
   // @Delete(':id')
   // remove(@Param('id') id: string) {

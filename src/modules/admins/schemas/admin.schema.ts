@@ -1,6 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, HydratedDocument } from 'mongoose';
 import { Role } from 'src/common/enums/roles.enum';
+import {
+  EmailVerification,
+  EmailVerificationDefault,
+} from 'src/common/schemas/email-verification.schema';
 
 // export type AdminDocument = Admin & Document;
 export type AdminDocument = HydratedDocument<Admin>;
@@ -22,6 +26,13 @@ export class Admin {
 
   @Prop({ required: true, unique: true })
   email: string;
+
+  @Prop({
+    type: EmailVerification,
+    required: true,
+    default: EmailVerificationDefault,
+  })
+  emailVerify: EmailVerification;
 
   @Prop({ select: false, required: true })
   password: string;

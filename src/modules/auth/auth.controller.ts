@@ -9,6 +9,8 @@ import {
   HttpException,
 } from '@nestjs/common';
 
+import Res from '../../common/helpers/response.helper';
+import { getErrorData } from 'src/common/helpers/error.helper';
 import { AuthService } from './auth.service';
 import { RegisterAdminDto, RegisterCustomerDto } from './dto/register-auth.dto';
 import { LoginAdminDto, LoginCustomerDto } from './dto/login-auth.dto';
@@ -28,5 +30,7 @@ export class AuthController {
   }
 
   @Post('register/customer')
-  registerCustomer(@Body() registerCustomerDto: RegisterCustomerDto) {}
+  async registerCustomer(@Body() registerCustomerDto: RegisterCustomerDto) {
+    return await this.authService.registerCustomer(registerCustomerDto);
+  }
 }

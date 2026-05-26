@@ -10,11 +10,13 @@ import { JwtAuthService } from 'src/common/services/jwt.service';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import Helper from '../../utils/helpers';
+import { CustomersService } from '../customers/customers.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly adminsService: AdminsService,
+    private readonly customersService: CustomersService,
     private readonly bcryptService: BcryptService,
     private readonly jwtAuthService: JwtAuthService,
     @InjectRedis() private readonly redis: Redis,
@@ -107,9 +109,12 @@ export class AuthService {
     }
   }
 
-  // customerRegister(registerCustomerDto: RegisterCustomerDto) {
-  //   return 'This action adds a new customer';
-  // }
+  async registerCustomer(registerCustomerDto: RegisterCustomerDto) {
+    const result =
+      await this.customersService.registerSelf(registerCustomerDto);
+    if (result.error) return Res.error(result.message, result.status);
+    else return Res.created(result.data, result.message);
+  }
 
   login() {
     return `login successful`;

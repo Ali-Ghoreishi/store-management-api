@@ -1,6 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, FilterQuery, PipelineStage, Types } from 'mongoose';
+import {
+  Model,
+  FilterQuery,
+  PipelineStage,
+  Types,
+  UpdateQuery,
+} from 'mongoose';
 
 import { getErrorData } from 'src/common/helpers/error.helper';
 import { CreateAdminDto } from './dto/create-admin.dto';
@@ -165,18 +171,18 @@ export class AdminsService {
 
   async findOneAndUpdate(
     filter: FilterQuery<Admin>,
-    updateAdminDto: UpdateAdminDto,
+    updateObject: UpdateQuery<Admin>,
   ) {
     try {
       // Create update object without mutating the DTO
       const updateData = {
-        ...updateAdminDto,
+        ...updateObject,
         updatedAt: new Date(),
       };
       // Hash password if being updated
-      if (updateAdminDto.password) {
+      if (updateObject.password) {
         updateData.password = await this.bcryptService.hash(
-          updateAdminDto.password,
+          updateObject.password,
         );
       }
       const updatedDoc = await this.adminModel.findOneAndUpdate(
@@ -207,17 +213,20 @@ export class AdminsService {
     }
   }
 
-  async updateOne(filter: FilterQuery<Admin>, updateAdminDto: UpdateAdminDto) {
+  async updateOne(
+    filter: FilterQuery<Admin>,
+    updateObject: UpdateQuery<Admin>,
+  ) {
     try {
       // Create update object without mutating the DTO
       const updateData = {
-        ...updateAdminDto,
+        ...updateObject,
         updatedAt: new Date(),
       };
       // Hash password if being updated
-      if (updateAdminDto.password) {
+      if (updateObject.password) {
         updateData.password = await this.bcryptService.hash(
-          updateAdminDto.password,
+          updateObject.password,
         );
       }
       const result = await this.adminModel.updateOne(filter, updateData, {
@@ -250,10 +259,13 @@ export class AdminsService {
     }
   }
 
-  async updateMany(filter: FilterQuery<Admin>, updateAdminDto: UpdateAdminDto) {
+  async updateMany(
+    filter: FilterQuery<Admin>,
+    updateObject: UpdateQuery<Admin>,
+  ) {
     try {
       // Note: Passwords cannot be updated via bulk operations for security
-      const result = await this.adminModel.updateMany(filter, updateAdminDto, {
+      const result = await this.adminModel.updateMany(filter, updateObject, {
         runValidators: true,
       });
       if (result.matchedCount === 0) {

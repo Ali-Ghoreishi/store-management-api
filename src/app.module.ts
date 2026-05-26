@@ -11,6 +11,8 @@ import { LoggerMiddleware } from './common/middleware/logger/logger.middleware';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { RabbitMQModule } from './common/modules/rabbitmq/rabbitmq.module';
+import { EmailModule } from 'src/common/modules/email/email.module';
 
 @Module({
   controllers: [AppController],
@@ -26,6 +28,8 @@ import { CategoriesModule } from './modules/categories/categories.module';
     AdminsModule,
     AuthModule,
     CategoriesModule,
+    RabbitMQModule,
+    EmailModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -1,6 +1,11 @@
+import { AdminDocument } from './../../admins/schemas/admin.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, HydratedDocument } from 'mongoose';
+import { Document, HydratedDocument, Types } from 'mongoose';
 import { Role } from 'src/common/enums/roles.enum';
+import {
+  EmailVerification,
+  EmailVerificationDefault,
+} from 'src/common/schemas/email-verification.schema';
 
 // export type CustomerDocument = Customer & Document;
 export type CustomerDocument = HydratedDocument<Customer>;
@@ -23,6 +28,14 @@ export class Customer {
   @Prop({ required: true, unique: true })
   email: string;
 
+  @Prop({
+    type: EmailVerification,
+    required: false,
+    select: false,
+    default: EmailVerificationDefault,
+  })
+  emailVerify: EmailVerification;
+
   @Prop({ select: false, required: true })
   password: string;
 
@@ -35,9 +48,6 @@ export class Customer {
   @Prop({ default: 0, min: 0, type: Number })
   walletBalance: number;
 
-  @Prop({ type: Date, default: null })
-  lastLoginAt: Date;
-
   @Prop({ default: CustomerStatus.Active, enum: CustomerStatus })
   status: CustomerStatus;
 
@@ -46,6 +56,15 @@ export class Customer {
 
   @Prop({ type: Date, default: null })
   deletedAt: Date;
+
+  @Prop({ type: Date, default: null })
+  lastLoginAt: Date;
+
+  @Prop({ type: Types.ObjectId, ref: 'Admin', required: false, default: null })
+  createdBy: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Admin', required: false, default: null })
+  updatedBy: Types.ObjectId;
 }
 
 export const CustomerSchema = SchemaFactory.createForClass(Customer);

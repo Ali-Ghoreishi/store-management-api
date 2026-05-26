@@ -1,6 +1,6 @@
 {
   "name": "store-management-api",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A NestJS backend API for managing products, orders, customers, and admin operations in an e-commerce store.",
   "author": "Ali Ghoreishi (https://github.com/Ali-Ghoreishi)",
   "private": true,
@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@nestjs-modules/ioredis": "^2.2.1",
-    "@nestjs-modules/mailer": "^2.3.4",
+    "@nestjs-modules/mailer": "^2.3.6",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",
