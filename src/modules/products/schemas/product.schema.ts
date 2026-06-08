@@ -1,10 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, HydratedDocument, Types } from 'mongoose';
 import * as mongoose from 'mongoose';
 
-import { ProductStatus } from 'src/common/enums/status.enum';
+export type ProductDocument = HydratedDocument<Product>;
 
-export type ProductDocument = Product & Document;
+export enum ProductStatus {
+  Active = 'active',
+  Inactive = 'inactive',
+}
 
 @Schema({ timestamps: true })
 export class Product {
@@ -12,7 +15,7 @@ export class Product {
   title: string;
 
   @Prop({ required: true, ref: 'Category' })
-  category: mongoose.Schema.Types.ObjectId;
+  category: Types.ObjectId;
 
   @Prop({ required: false, minLength: 2, maxLength: 200, default: null })
   description: string;
@@ -38,6 +41,18 @@ export class Product {
 
   @Prop({ required: false, minLength: 2, maxLength: 50, default: null })
   image_altText: string;
+
+  @Prop({ default: false })
+  deleted: boolean;
+
+  @Prop({ type: Date, default: null })
+  deletedAt: Date;
+
+  @Prop({ type: Types.ObjectId, ref: 'Admin', required: false, default: null })
+  createdBy: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Admin', required: false, default: null })
+  updatedBy: Types.ObjectId;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

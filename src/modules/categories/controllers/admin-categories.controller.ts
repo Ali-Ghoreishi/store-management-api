@@ -8,20 +8,30 @@ import {
   Delete,
   HttpException,
   UseGuards,
+  Request,
 } from '@nestjs/common';
-import { CategoriesService } from './categories.service';
-import { CreateCategoryDto } from './dto/create-category.dto';
+import type { Request as ExpressRequest } from 'express';
+
+import { CategoriesService } from '../categories.service';
+import { CreateCategoryDto } from '../dto/create-category.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth/jwt-auth.guard';
+import { AuthUser } from 'src/common/types/global.type';
 // import { UpdateCategoryDto } from './dto/update-category.dto';
 
-@Controller('categories')
-export class CategoriesController {
+@Controller('admin/categories')
+export class AdminCategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async create(@Body() createCategoryDto: CreateCategoryDto) {
-    return await this.categoriesService.create(createCategoryDto);
+  async create(
+    @Body() createCategoryDto: CreateCategoryDto,
+    @Request() req: ExpressRequest,
+  ) {
+    return await this.categoriesService.create(
+      createCategoryDto,
+      req.user as AuthUser,
+    );
   }
 
   // @Get()

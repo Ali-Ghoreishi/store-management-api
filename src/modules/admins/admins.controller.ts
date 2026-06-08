@@ -29,7 +29,7 @@ export class AdminsController {
   // @Post()
   // async create(@Body() createAdminDto: CreateAdminDto) {}
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Query() queryParams: QueryAdminDto) {
     const result = await this.adminsService.findAll(queryParams);
@@ -44,7 +44,7 @@ export class AdminsController {
 
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
-  //   return this.adminsService.update(+id, updateAdminDto);
+  //   return this.adminsService.updateOne(+id, updateAdminDto);
   // }
 
   // @Delete(':id')

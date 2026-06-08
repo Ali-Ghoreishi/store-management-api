@@ -64,6 +64,7 @@ export class EmailService {
     name: string,
     verificationCode: string,
   ) {
+    const verifyUrl = `${process.env.APP_URL}/auth/verify-account?email=${encodeURIComponent(to)}&verifyCode=${verificationCode}`;
     const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h1 style="color: #4CAF50;">Verify Your Email Address 🔐</h1>
@@ -72,6 +73,25 @@ export class EmailService {
       
       <div style="background-color: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
         <h2 style="color: #333; margin: 0; letter-spacing: 5px; font-size: 32px;">${verificationCode}</h2>
+      </div>
+
+      <p>Or simply click the button below to verify your account automatically:</p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a
+          href="${verifyUrl}"
+          style="
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            display: inline-block;
+            font-weight: bold;
+          "
+        >
+          Verify My Account
+        </a>
       </div>
       
       <p>This code will expire in <strong>10 minutes</strong>.</p>
@@ -91,6 +111,10 @@ export class EmailService {
     Thank you for creating an account! Please verify your email address by entering this code:
     
     ${verificationCode}
+
+    Or click the link below:
+
+    ${verifyUrl}
     
     This code will expire in 10 minutes.
     

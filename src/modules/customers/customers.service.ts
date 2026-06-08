@@ -6,6 +6,8 @@ import {
   PipelineStage,
   Types,
   UpdateQuery,
+  QueryOptions,
+  ProjectionType,
 } from 'mongoose';
 
 import { getErrorData } from 'src/common/helpers/error.helper';
@@ -256,66 +258,80 @@ export class CustomersService {
   //   }
   // }
 
-  async findOne(filter: FilterQuery<Customer>) {
-    return await this.customerModel.findOne(filter);
+  async findOne(
+    filter: FilterQuery<Customer>,
+    projection?: ProjectionType<Customer>,
+    options?: QueryOptions<Customer>,
+  ) {
+    return await this.customerModel.findOne(filter, projection, options).exec();
   }
 
-  async findById(id: string | Types.ObjectId) {
-    return await this.customerModel.findById(id);
+  async findById(
+    id: string | Types.ObjectId,
+    projection?: ProjectionType<Customer>,
+    options?: QueryOptions<Customer>,
+  ) {
+    if (!Types.ObjectId.isValid(id)) {
+      return null;
+    }
+    return await this.customerModel.findById(id, projection, options).exec();
   }
 
-  async findByEmail(email: string) {
-    return await this.customerModel.findOne({ email });
+  async findByEmail(
+    email: string,
+    projection?: ProjectionType<Customer>,
+    options?: QueryOptions<Customer>,
+  ) {
+    return await this.customerModel
+      .findOne({ email: email.toLowerCase().trim() }, projection, options)
+      .exec();
   }
 
   // For authentication (includes password)
   async findOneForAuth(filter: FilterQuery<Customer>) {
-    return await this.customerModel.findOne(filter).select('+password'); // Include password only for auth
+    return await this.customerModel
+      .findOne(filter)
+      .select('+password +emailVerify'); // Include password only for auth
   }
 
-  // async findOneAndUpdate(
-  //   filter: FilterQuery<Customer>,
-  //   updateCustomerDto: UpdateCustomerDto,
-  // ) {
-  //   try {
-  //     // Create update object without mutating the DTO
-  //     const updateData = {
-  //       ...updateCustomerDto,
-  //       updatedAt: new Date(),
-  //     };
-  //     // Hash password if being updated
-  //     if (updateCustomerDto.password) {
-  //       updateData.password = await this.bcryptService.hash(
-  //         updateCustomerDto.password,
-  //       );
-  //     }
-  //     const updatedDoc = await this.customerModel.findOneAndUpdate(
-  //       filter,
-  //       updateData,
-  //       { new: true, runValidators: true },
-  //     );
-  //     if (!updatedDoc) {
-  //       return {
-  //         error: true,
-  //         message: 'Record not found.',
-  //         status: 404,
-  //       };
-  //     }
-  //     return {
-  //       error: false,
-  //       message: 'Updated successfully',
-  //       status: 200,
-  //       data: { updatedDoc },
-  //     };
-  //   } catch (err) {
-  //     const { message, status } = getErrorData(err);
-  //     return {
-  //       error: true,
-  //       message,
-  //       status,
-  //     };
-  //   }
-  // }
+  async findOneAndUpdate(
+    filter: FilterQuery<Customer>,
+    updateObject: UpdateQuery<Customer>,
+    options?: QueryOptions<Customer>,
+  ) {
+    try {
+      // Hash password if being updated
+      if (updateObject.password) {
+        updateObject.password = await this.bcryptService.hash(
+          updateObject.password,
+        );
+      }
+      const updatedDoc = await this.customerModel
+        .findOneAndUpdate(filter, updateObject, options)
+        .exec();
+
+      if (!updatedDoc) {
+        return {
+          error: true,
+          message: 'Record not found.',
+          status: 404,
+        };
+      }
+      return {
+        error: false,
+        message: 'Updated successfully',
+        status: 200,
+        data: { updatedDoc },
+      };
+    } catch (err) {
+      const { message, status } = getErrorData(err);
+      return {
+        error: true,
+        message,
+        status,
+      };
+    }
+  }
 
   async updateOne(
     filter: FilterQuery<Customer>,

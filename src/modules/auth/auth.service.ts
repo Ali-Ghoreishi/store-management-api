@@ -11,6 +11,8 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import Helper from '../../utils/helpers';
 import { CustomersService } from '../customers/customers.service';
+import { VerifyAccountDto } from './dto/verify-account-auth.dto';
+import { EmailVerification } from 'src/common/schemas/email-verification.schema';
 
 @Injectable()
 export class AuthService {
@@ -116,7 +118,143 @@ export class AuthService {
     else return Res.created(result.data, result.message);
   }
 
-  login() {
-    return `login successful`;
+  async loginCustomer(loginCustomerDto: LoginCustomerDto) {
+    try {
+      const customer = await this.customersService.findOneForAuth({
+        email: loginCustomerDto.email,
+      });
+      if (!customer)
+        return Res.error(
+          'Incorrect username or password. Please try again.',
+          401,
+        );
+      if (customer.deleted)
+        return Res.error('Account has been deactivated.', 401);
+
+      if (loginCustomerDto.loginType === 'otp') {
+        if (loginCustomerDto.code) {
+          // Step 2: Verify OTP code and complete login
+          const storedCode = await this.redis.get(
+            `customer_otp:${customer._id.toString()}`,
+          );
+          if (!storedCode) {
+            return Res.error(
+              'OTP code has expired. Please request a new code.',
+              401,
+            );
+          }
+          if (storedCode !== loginCustomerDto.code) {
+            return Res.error('Invalid OTP code. Please try again.', 401);
+          }
+          // Delete the used OTP code from Redis
+          await this.redis.del(`customer_otp:${customer._id.toString()}`);
+        } else {
+          // Step 1: Generate and send OTP code
+          const newCode = Helper.generateRandomCode(6);
+
+          // Store OTP in Redis with expiration (5 minutes)
+          await this.redis.setex(
+            `customer_otp:${customer._id.toString()}`,
+            300, // 5 minutes in seconds
+            newCode,
+          );
+
+          // Send OTP via email or SMS
+          // await this.sendOTPByEmail(customer.email, newCode);    //TBC
+          return Res.ok({ code: newCode }, 'OTP code sent successfully.');
+        }
+
+        //Login with password
+      } else {
+        if (!loginCustomerDto.password)
+          return Res.error('Password is required.', 400);
+        if (
+          !(await this.bcryptService.compare(
+            loginCustomerDto.password,
+            customer.password,
+          ))
+        ) {
+          return Res.error(
+            'Incorrect username or password. Please try again.',
+            401,
+          );
+        }
+      }
+
+      const tokens = this.jwtAuthService.generateUserToken(customer);
+      // await this.customersService.
+      return Res.ok({
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        userData: {
+          id: customer._id,
+          email: customer.email,
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          role: customer.role,
+        },
+      });
+    } catch (err) {
+      const { message, status } = getErrorData(err);
+      return Res.error(message, status);
+    }
+  }
+
+  async verifyAccount(verifyAccountDto: VerifyAccountDto) {
+    try {
+      const { email, verifyCode } = verifyAccountDto;
+      let userType = 'customer';
+      let user: Record<string, any> | null = null;
+      const admin = await this.adminsService.findOneForAuth({ email });
+      if (admin) {
+        userType = 'admin';
+        user = admin;
+      }
+      if (!admin) {
+        const customer = await this.customersService.findOneForAuth({ email });
+        if (customer) user = customer;
+      }
+      if (!user) return Res.error('User not found.', 404);
+      const { code, status } = user.emailVerify as EmailVerification;
+      if (status === 'verified') {
+        return Res.error('Account is already verified.', 400);
+      }
+      if (code !== verifyCode) {
+        return Res.error('Invalid verification code.', 400);
+      }
+      const updateObject = {
+        $set: {
+          'emailVerify.code': null,
+          'emailVerify.status': 'verified',
+          'emailVerify.verifiedAt': new Date(),
+        },
+      };
+      let updatedDoc: Record<string, any> | null = null;
+      if (userType === 'admin') {
+        updatedDoc = await this.adminsService.findOneAndUpdate(
+          {
+            _id: user._id,
+          },
+          updateObject,
+          { new: true, runValidators: true },
+        );
+      } else if (userType === 'customer') {
+        updatedDoc = await this.customersService.findOneAndUpdate(
+          {
+            _id: user._id,
+          },
+          updateObject,
+          { new: true, runValidators: true },
+        );
+      }
+      if (!updatedDoc) {
+        return Res.error('Failed to verify account. Please try again.', 400);
+      }
+
+      return Res.ok(null, 'Account verified successfully.');
+    } catch (err) {
+      const { message, status } = getErrorData(err);
+      return Res.error(message, status);
+    }
   }
 }

@@ -22,4 +22,6 @@ export interface FindAllOptions {
 
   /** Custom sort object to override query sort */
   customSort?: Record<string, 1 | -1>;
+
+  treeView?: boolean; // If true, only fetch top-level data for tree view
 }

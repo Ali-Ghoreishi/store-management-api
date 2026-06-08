@@ -6,6 +6,8 @@ import {
   PipelineStage,
   Types,
   UpdateQuery,
+  QueryOptions,
+  ProjectionType,
 } from 'mongoose';
 
 import { getErrorData } from 'src/common/helpers/error.helper';
@@ -152,44 +154,61 @@ export class AdminsService {
     }
   }
 
-  async findOne(filter: FilterQuery<Admin>) {
-    return await this.adminModel.findOne(filter);
+  async findOne(
+    filter: FilterQuery<Admin>,
+    projection?: ProjectionType<Admin>,
+    options?: QueryOptions<Admin>,
+  ) {
+    return await this.adminModel.findOne(filter, projection, options).exec();
   }
 
-  async findById(id: string | Types.ObjectId) {
-    return await this.adminModel.findById(id);
+  async findById(
+    id: string | Types.ObjectId,
+    projection?: ProjectionType<Admin>,
+    options?: QueryOptions<Admin>,
+  ) {
+    if (!Types.ObjectId.isValid(id)) {
+      return null;
+    }
+    return await this.adminModel.findById(id, projection, options).exec();
   }
 
-  async findByEmail(email: string) {
-    return await this.adminModel.findOne({ email });
+  async findByEmail(
+    email: string,
+    projection?: ProjectionType<Admin>,
+    options?: QueryOptions<Admin>,
+  ) {
+    return await this.adminModel
+      .findOne({ email: email.toLowerCase().trim() }, projection, options)
+      .exec();
   }
 
   // For authentication (includes password)
-  async findOneForAuth(filter: FilterQuery<Admin>) {
-    return await this.adminModel.findOne(filter).select('+password'); // Include password only for auth
+  async findOneForAuth(
+    filter: FilterQuery<Admin>,
+    options?: QueryOptions<Admin>,
+  ) {
+    return await this.adminModel
+      .findOne(filter)
+      .select('+password +emailVerify'); // Include password only for auth
   }
 
   async findOneAndUpdate(
     filter: FilterQuery<Admin>,
     updateObject: UpdateQuery<Admin>,
+    options?: QueryOptions<Admin>,
   ) {
     try {
-      // Create update object without mutating the DTO
-      const updateData = {
-        ...updateObject,
-        updatedAt: new Date(),
-      };
       // Hash password if being updated
       if (updateObject.password) {
-        updateData.password = await this.bcryptService.hash(
+        updateObject.password = await this.bcryptService.hash(
           updateObject.password,
         );
       }
-      const updatedDoc = await this.adminModel.findOneAndUpdate(
-        filter,
-        updateData,
-        { new: true, runValidators: true },
-      );
+      const updatedDoc = await this.adminModel
+        .findOneAndUpdate(filter, updateObject, options)
+        .exec();
+
       if (!updatedDoc) {
         return {
           error: true,

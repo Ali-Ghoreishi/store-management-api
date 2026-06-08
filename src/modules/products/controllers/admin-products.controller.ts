@@ -8,30 +8,32 @@ import {
   Delete,
   HttpException,
   Param,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
-import { ProductsService } from './products.service';
-import { AdminsService } from 'src/modules/admins/admins.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { ListQueryParamsDto } from './dto/queryParams-product-dto';
+import type { Request as ExpressRequest } from 'express';
 
-@Controller('products')
-export class ProductsController {
-  constructor(
-    private readonly productsService: ProductsService,
-    private readonly adminsService: AdminsService,
-  ) {}
+import { ProductsService } from '../products.service';
+import { AdminsService } from 'src/modules/admins/admins.service';
+import { CreateProductDto } from '../dto/create-product.dto';
+import { UpdateProductDto } from '../dto/update-product.dto';
+import { AuthUser } from 'src/common/types/global.type';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth/jwt-auth.guard';
+
+@Controller('admin/products')
+export class AdminProductsController {
+  constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  async create(@Body() createProductDto: CreateProductDto) {
-    try {
-      return await this.productsService.create(createProductDto);
-    } catch (error) {
-      return new HttpException(
-        error.message || 'Internal server error',
-        error.status || 500,
-      );
-    }
+  @UseGuards(JwtAuthGuard)
+  async create(
+    @Body() createProductDto: CreateProductDto,
+    @Request() req: ExpressRequest,
+  ) {
+    return await this.productsService.create(
+      createProductDto,
+      req.user as AuthUser,
+    );
   }
 
   // @Get()

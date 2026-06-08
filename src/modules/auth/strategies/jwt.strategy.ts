@@ -8,14 +8,19 @@ import { Strategy, ExtractJwt } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { AdminsService } from 'src/modules/admins/admins.service';
 import { Role } from 'src/common/enums/roles.enum';
+import { AuthUser } from 'src/common/types/global.type';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly adminService: AdminsService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly adminService: AdminsService,
+  ) {
+    const secret = configService.getOrThrow<string>('auth.accessSecret');
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: 'secret',
+      secretOrKey: secret,
     });
   }
 
@@ -23,7 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     sub: string;
     email: string;
     role: Role;
-  }): Promise<{ _id: string; email: string; role: Role }> {
+  }): Promise<AuthUser> {
     try {
       if (!payload.sub || !payload.email || !payload.role) {
         throw new UnauthorizedException('Invalid token payload');
