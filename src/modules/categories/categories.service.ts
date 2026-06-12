@@ -26,7 +26,7 @@ export class CategoriesService {
         title: createCategoryDto.title,
       });
       if (duplicateTitle) {
-        return Res.error('Title already exists.', 400);
+        throw Res.error('Title already exists.', 400);
       }
       const categoryData = {
         ...createCategoryDto,
@@ -36,7 +36,7 @@ export class CategoriesService {
       return await createdCategory.save();
     } catch (err) {
       const { message, status } = getErrorData(err);
-      return Res.error(message, status);
+      throw Res.error(message, status);
     }
   }
 

@@ -26,7 +26,7 @@ export class AuthService {
 
   async registerAdmin(registerAdminDto: RegisterAdminDto) {
     const result = await this.adminsService.create(registerAdminDto);
-    if (result.error) return Res.error(result.message, result.status);
+    if (result.error)  throw Res.error(result.message, result.status);
     else return Res.created(result.data, result.message);
   }
 
@@ -36,11 +36,11 @@ export class AuthService {
         email: loginAdminDto.email,
       });
       if (!admin)
-        return Res.error(
+         throw Res.error(
           'Incorrect username or password. Please try again.',
           401,
         );
-      if (admin.deleted) return Res.error('Account has been deactivated.', 401);
+      if (admin.deleted) throw Res.error('Account has been deactivated.', 401);
 
       if (loginAdminDto.loginType === 'otp') {
         if (loginAdminDto.code) {
@@ -49,13 +49,13 @@ export class AuthService {
             `admin_otp:${admin._id.toString()}`,
           );
           if (!storedCode) {
-            return Res.error(
+            throw Res.error(
               'OTP code has expired. Please request a new code.',
               401,
             );
           }
           if (storedCode !== loginAdminDto.code) {
-            return Res.error('Invalid OTP code. Please try again.', 401);
+            throw Res.error('Invalid OTP code. Please try again.', 401);
           }
           // Delete the used OTP code from Redis
           await this.redis.del(`admin_otp:${admin._id.toString()}`);
@@ -78,14 +78,14 @@ export class AuthService {
         //Login with password
       } else {
         if (!loginAdminDto.password)
-          return Res.error('Password is required.', 400);
+           throw Res.error('Password is required.', 400);
         if (
           !(await this.bcryptService.compare(
             loginAdminDto.password,
             admin.password,
           ))
         ) {
-          return Res.error(
+           throw Res.error(
             'Incorrect username or password. Please try again.',
             401,
           );
@@ -107,14 +107,14 @@ export class AuthService {
       });
     } catch (err) {
       const { message, status } = getErrorData(err);
-      return Res.error(message, status);
+      throw Res.error(message, status);
     }
   }
 
   async registerCustomer(registerCustomerDto: RegisterCustomerDto) {
     const result =
       await this.customersService.registerSelf(registerCustomerDto);
-    if (result.error) return Res.error(result.message, result.status);
+    if (result.error) throw Res.error(result.message, result.status);
     else return Res.created(result.data, result.message);
   }
 
@@ -124,12 +124,12 @@ export class AuthService {
         email: loginCustomerDto.email,
       });
       if (!customer)
-        return Res.error(
+        throw Res.error(
           'Incorrect username or password. Please try again.',
           401,
         );
       if (customer.deleted)
-        return Res.error('Account has been deactivated.', 401);
+        throw Res.error('Account has been deactivated.', 401);
 
       if (loginCustomerDto.loginType === 'otp') {
         if (loginCustomerDto.code) {
@@ -138,13 +138,13 @@ export class AuthService {
             `customer_otp:${customer._id.toString()}`,
           );
           if (!storedCode) {
-            return Res.error(
+            throw Res.error(
               'OTP code has expired. Please request a new code.',
               401,
             );
           }
           if (storedCode !== loginCustomerDto.code) {
-            return Res.error('Invalid OTP code. Please try again.', 401);
+            throw Res.error('Invalid OTP code. Please try again.', 401);
           }
           // Delete the used OTP code from Redis
           await this.redis.del(`customer_otp:${customer._id.toString()}`);
@@ -167,14 +167,14 @@ export class AuthService {
         //Login with password
       } else {
         if (!loginCustomerDto.password)
-          return Res.error('Password is required.', 400);
+          throw Res.error('Password is required.', 400);
         if (
           !(await this.bcryptService.compare(
             loginCustomerDto.password,
             customer.password,
           ))
         ) {
-          return Res.error(
+          throw Res.error(
             'Incorrect username or password. Please try again.',
             401,
           );
@@ -196,7 +196,7 @@ export class AuthService {
       });
     } catch (err) {
       const { message, status } = getErrorData(err);
-      return Res.error(message, status);
+      throw Res.error(message, status);
     }
   }
 
@@ -214,13 +214,13 @@ export class AuthService {
         const customer = await this.customersService.findOneForAuth({ email });
         if (customer) user = customer;
       }
-      if (!user) return Res.error('User not found.', 404);
+      if (!user) throw Res.error('User not found.', 404);
       const { code, status } = user.emailVerify as EmailVerification;
       if (status === 'verified') {
-        return Res.error('Account is already verified.', 400);
+        throw Res.error('Account is already verified.', 400);
       }
       if (code !== verifyCode) {
-        return Res.error('Invalid verification code.', 400);
+        throw Res.error('Invalid verification code.', 400);
       }
       const updateObject = {
         $set: {
@@ -248,13 +248,13 @@ export class AuthService {
         );
       }
       if (!updatedDoc) {
-        return Res.error('Failed to verify account. Please try again.', 400);
+        throw Res.error('Failed to verify account. Please try again.', 400);
       }
 
       return Res.ok(null, 'Account verified successfully.');
     } catch (err) {
       const { message, status } = getErrorData(err);
-      return Res.error(message, status);
+      throw Res.error(message, status);
     }
   }
 }

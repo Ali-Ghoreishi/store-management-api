@@ -1,47 +1,52 @@
+import {
+  BadRequestException,
+  UnauthorizedException,
+  ForbiddenException,
+  NotFoundException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
+
 export class Res {
-  static ok(data: any = {}, message: string = 'Success.') {
+  static ok(data: any = {}, message = 'Success.') {
     return {
       success: true,
       message,
-      statusCode: 200,
+      statusCode: HttpStatus.OK,
       data,
       timestamp: new Date().toISOString(),
     };
   }
 
-  static created(data: any = {}, message: string = 'Created.') {
+  static created(data: any = {}, message = 'Created.') {
     return {
       success: true,
       message,
-      statusCode: 201,
+      statusCode: HttpStatus.CREATED,
       data,
       timestamp: new Date().toISOString(),
     };
   }
 
-  static error(message: string = 'Error', statusCode: number = 500) {
-    return {
-      success: false,
-      message,
-      statusCode,
-      timestamp: new Date().toISOString(),
-    };
+  static badRequest(message = 'Bad request.') {
+    throw new BadRequestException(message);
   }
 
-  static badRequest(message: string = 'Bad request.') {
-    return this.error(message, 400);
+  static unauthorized(message = 'Unauthorized.') {
+    throw new UnauthorizedException(message);
   }
 
-  static unauthorized(message: string = 'Unauthorized.') {
-    return this.error(message, 401);
+  static forbidden(message = 'Forbidden.') {
+    throw new ForbiddenException(message);
   }
 
-  static forbidden(message: string = 'Forbidden.') {
-    return this.error(message, 403);
+  static notFound(message = 'Not found.') {
+    throw new NotFoundException(message);
   }
 
-  static notFound(message: string = 'Not found.') {
-    return this.error(message, 404);
+  // optional generic error
+  static error(message = 'Error', statusCode = 500) {
+    throw new HttpException(message, statusCode);
   }
 }
 

@@ -24,7 +24,7 @@ export class ProductsController {
       enablePopulate: true,
       populationFields: ['category'],
     });
-    if (result.error) return Res.error(result.message, result.status);
+    if (result.error) throw Res.error(result.message, result.status);
     else return Res.ok(result.data, result.message);
   }
 

@@ -32,7 +32,7 @@ export class CategoriesController {
       enablePopulate: true,
       populationFields: ['parent'],
     });
-    if (result.error) return Res.error(result.message, result.status);
+    if (result.error) throw Res.error(result.message, result.status);
     else return Res.ok(result.data, result.message);
   }
 

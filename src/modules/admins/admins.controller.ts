@@ -33,7 +33,7 @@ export class AdminsController {
   @Get()
   async findAll(@Query() queryParams: QueryAdminDto) {
     const result = await this.adminsService.findAll(queryParams);
-    if (result.error) return Res.error(result.message, result.status);
+    if (result.error)  throw Res.error(result.message, result.status);
     else return Res.ok(result.data, result.message);
   }
 
