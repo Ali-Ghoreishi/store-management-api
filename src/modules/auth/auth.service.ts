@@ -31,7 +31,6 @@ export class AuthService {
   }
 
   async loginAdmin(loginAdminDto: LoginAdminDto) {
-    try {
       const admin = await this.adminsService.findOneForAuth({
         email: loginAdminDto.email,
       });
@@ -105,10 +104,6 @@ export class AuthService {
           role: admin.role,
         },
       });
-    } catch (err) {
-      const { message, status } = getErrorData(err);
-      throw Res.error(message, status);
-    }
   }
 
   async registerCustomer(registerCustomerDto: RegisterCustomerDto) {
@@ -119,7 +114,6 @@ export class AuthService {
   }
 
   async loginCustomer(loginCustomerDto: LoginCustomerDto) {
-    try {
       const customer = await this.customersService.findOneForAuth({
         email: loginCustomerDto.email,
       });
@@ -194,14 +188,9 @@ export class AuthService {
           role: customer.role,
         },
       });
-    } catch (err) {
-      const { message, status } = getErrorData(err);
-      throw Res.error(message, status);
-    }
   }
 
   async verifyAccount(verifyAccountDto: VerifyAccountDto) {
-    try {
       const { email, verifyCode } = verifyAccountDto;
       let userType = 'customer';
       let user: Record<string, any> | null = null;
@@ -252,9 +241,5 @@ export class AuthService {
       }
 
       return Res.ok(null, 'Account verified successfully.');
-    } catch (err) {
-      const { message, status } = getErrorData(err);
-      throw Res.error(message, status);
-    }
   }
 }

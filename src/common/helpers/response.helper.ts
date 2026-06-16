@@ -1,11 +1,4 @@
-import {
-  BadRequestException,
-  UnauthorizedException,
-  ForbiddenException,
-  NotFoundException,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common';
 
 export class Res {
   static ok(data: any = {}, message = 'Success.') {
@@ -28,26 +21,10 @@ export class Res {
     };
   }
 
-  static badRequest(message = 'Bad request.') {
-    throw new BadRequestException(message);
-  }
-
-  static unauthorized(message = 'Unauthorized.') {
-    throw new UnauthorizedException(message);
-  }
-
-  static forbidden(message = 'Forbidden.') {
-    throw new ForbiddenException(message);
-  }
-
-  static notFound(message = 'Not found.') {
-    throw new NotFoundException(message);
-  }
-
   // optional generic error
-  static error(message = 'Error', statusCode = 500) {
-    throw new HttpException(message, statusCode);
-  }
+  // static error(message = 'Error', statusCode = 500) {
+  //   throw new HttpException(message, statusCode);
+  // }
 }
 
 export default Res;

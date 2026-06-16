@@ -26,29 +26,10 @@ export class AdminsController {
     private readonly configService: ConfigService,
   ) {}
 
-  // @Post()
-  // async create(@Body() createAdminDto: CreateAdminDto) {}
-
   @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Query() queryParams: QueryAdminDto) {
     const result = await this.adminsService.findAll(queryParams);
-    if (result.error)  throw Res.error(result.message, result.status);
-    else return Res.ok(result.data, result.message);
+    if (result) return Res.ok(result.data);
   }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.adminsService.findOne();
-  // }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
-  //   return this.adminsService.updateOne(+id, updateAdminDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.adminsService.remove(+id);
-  // }
 }

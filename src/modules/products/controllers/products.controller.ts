@@ -30,15 +30,8 @@ export class ProductsController {
 
   // @Get(':id')
   // async findOne(@Param('id') id: string) {
-  //   try {
   //     const category = await this.categoriesService.findById(id);
   //     if (!category) return new HttpException('Data not found.', 404);
   //     return category;
-  //   } catch (error) {
-  //     return new HttpException(
-  //       error.message || 'Internal server error',
-  //       error.status || 500,
-  //     );
-  //   }
   // }
 }

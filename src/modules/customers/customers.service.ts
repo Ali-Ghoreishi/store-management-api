@@ -33,7 +33,6 @@ export class CustomersService {
   ) {}
 
   async registerSelf(createCustomerDto: CreateCustomerDto) {
-    try {
       const verifyCode = Helper.generateRandomCode(5);
       // 1. Check for duplicate email
       const duplicateEmail = await this.findByEmail(createCustomerDto.email);
@@ -116,18 +115,9 @@ export class CustomersService {
         status: 201,
         data: result as CustomerDocument,
       };
-    } catch (err) {
-      const { message, status } = getErrorData(err);
-      return {
-        error: true,
-        message,
-        status,
-      };
-    }
   }
 
   // async createByAdmin(createCustomerDto: CreateCustomerDto) {
-  //   try {
   //     // 1. Check for duplicate email
   //     const duplicateEmail = await this.findByEmail(createCustomerDto.email);
   //     if (duplicateEmail) {
@@ -151,21 +141,12 @@ export class CustomersService {
   //       status: 201,
   //       data: result as CustomerDocument,
   //     };
-  //   } catch (err) {
-  //     const { message, status } = getErrorData(err);
-  //     return {
-  //       error: true,
-  //       message,
-  //       status,
-  //     };
-  //   }
   // }
 
   // async findAll(
   //   queryParams: QueryCustomerDto = {},
   //   options: FindAllOptions = {},
   // ) {
-  //   try {
   //     // const {
   //     //   enablePopulate = true,
   //     //   select = '-password', // Default exclude password
@@ -248,14 +229,6 @@ export class CustomersService {
   //         result: data,
   //       },
   //     };
-  //   } catch (err) {
-  //     const { message, status } = getErrorData(err);
-  //     return {
-  //       error: true,
-  //       message,
-  //       status,
-  //     };
-  //   }
   // }
 
   async findOne(
@@ -299,7 +272,6 @@ export class CustomersService {
     updateObject: UpdateQuery<Customer>,
     options?: QueryOptions<Customer>,
   ) {
-    try {
       // Hash password if being updated
       if (updateObject.password) {
         updateObject.password = await this.bcryptService.hash(
@@ -323,21 +295,12 @@ export class CustomersService {
         status: 200,
         data: { updatedDoc },
       };
-    } catch (err) {
-      const { message, status } = getErrorData(err);
-      return {
-        error: true,
-        message,
-        status,
-      };
-    }
   }
 
   async updateOne(
     filter: FilterQuery<Customer>,
     updateObject: UpdateQuery<Customer>,
   ) {
-    try {
       // Create update object without mutating the DTO
       const updateData = {
         ...updateObject,
@@ -369,21 +332,12 @@ export class CustomersService {
         status: 200,
         data: { modifiedCount: result.modifiedCount },
       };
-    } catch (err) {
-      const { message, status } = getErrorData(err);
-      return {
-        error: true,
-        message,
-        status,
-      };
-    }
   }
 
   // async updateMany(
   //   filter: FilterQuery<Customer>,
   //   updateCustomerDto: UpdateCustomerDto,
   // ) {
-  //   try {
   //     // Note: Passwords cannot be updated via bulk operations for security
   //     const result = await this.customerModel.updateMany(
   //       filter,
@@ -407,18 +361,9 @@ export class CustomersService {
   //         modifiedCount: result.modifiedCount,
   //       },
   //     };
-  //   } catch (err) {
-  //     const { message, status } = getErrorData(err);
-  //     return {
-  //       error: true,
-  //       message,
-  //       status,
-  //     };
-  //   }
   // }
 
   // async softDelete(filter: FilterQuery<Customer>) {
-  //   try {
   //     const result = await this.customerModel.findOneAndUpdate(
   //       filter,
   //       {
@@ -441,18 +386,9 @@ export class CustomersService {
   //       status: 200,
   //       data: { deletedAt: result.deletedAt },
   //     };
-  //   } catch (err) {
-  //     const { message, status } = getErrorData(err);
-  //     return {
-  //       error: true,
-  //       message,
-  //       status,
-  //     };
-  //   }
   // }
 
   // async hardDelete(filter: FilterQuery<Customer>) {
-  //   try {
   //     const result = await this.customerModel.findOneAndDelete(filter);
   //     if (!result) {
   //       return {
@@ -467,14 +403,6 @@ export class CustomersService {
   //       status: 200,
   //       data: { deletedId: result._id },
   //     };
-  //   } catch (err) {
-  //     const { message, status } = getErrorData(err);
-  //     return {
-  //       error: true,
-  //       message,
-  //       status,
-  //     };
-  //   }
   // }
 
   // async aggregate<T = any>(
@@ -485,7 +413,6 @@ export class CustomersService {
   //   status: number;
   //   data?: T[];
   // }> {
-  //   try {
   //     const result = await this.customerModel.aggregate(pipeline).exec();
   //     return {
   //       error: false,
@@ -493,13 +420,5 @@ export class CustomersService {
   //       status: 200,
   //       data: result,
   //     };
-  //   } catch (err) {
-  //     const { message, status } = getErrorData(err);
-  //     return {
-  //       error: true,
-  //       message,
-  //       status,
-  //     };
-  //   }
   // }
 }

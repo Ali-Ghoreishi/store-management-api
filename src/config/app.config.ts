@@ -21,6 +21,7 @@ export default () => ({
 
   bcrypt: {
     saltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10),
+    defaultPassword: process.env.DEFAULT_PASSWORD,
   },
 
   rabbitmq: {

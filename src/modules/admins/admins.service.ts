@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, BadRequestException, NotFoundException, ConflictException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import {
   Model,
@@ -29,129 +29,97 @@ export class AdminsService {
   ) {}
 
   async create(createAdminDto: CreateAdminDto) {
-    try {
-      // 1. Check for duplicate email
-      const duplicateEmail = await this.findByEmail(createAdminDto.email);
-      if (duplicateEmail) {
-        return {
-          error: true,
-          message: 'Admin already exists.',
-          status: 400,
-        };
-      }
-      // 2. Hash password
-      const hashedPassword = await this.bcryptService.hash(
-        createAdminDto.password,
-      );
-      createAdminDto.password = hashedPassword;
-      const createdAdmin = new this.adminModel(createAdminDto);
-      await createdAdmin.save();
-      const { password, ...result } = createdAdmin.toObject();
-      return {
-        error: false,
-        message: 'success',
-        status: 201,
-        data: result as AdminDocument,
-      };
-    } catch (err) {
-      const { message, status } = getErrorData(err);
-      return {
-        error: true,
-        message,
-        status,
-      };
+    // 1. Check for duplicate email
+    const duplicateEmail = await this.findByEmail(createAdminDto.email);
+    if (duplicateEmail) {
+      throw new BadRequestException('Admin already exists.');
     }
+    // 2. Hash password
+    const hashedPassword = await this.bcryptService.hash(
+      createAdminDto.password,
+    );
+    createAdminDto.password = hashedPassword;
+    const createdAdmin = new this.adminModel(createAdminDto);
+    await createdAdmin.save();
+    const { password, ...result } = createdAdmin.toObject();
+    return result as AdminDocument;
   }
 
   async findAll(queryParams: QueryAdminDto = {}, options: FindAllOptions = {}) {
-    try {
-      // const {
-      //   enablePopulate = true,
-      //   select = '-password', // Default exclude password
-      //   withPassword = false,
-      //   withDeleted = false,
-      //   populationFields = ['role', 'createdBy', 'updatedBy'],
-      // } = options;
-      // Build filters with proper typing
-      const filters: FilterQuery<Admin> = buildFilters<Admin>(queryParams, {
-        searchFields: ['firstName', 'lastName', 'email'],
-        exactMatchFields: [
-          'firstName',
-          'lastName',
-          'email',
-          'role',
-          'status',
-          'phoneNumber',
-        ],
-        searchTerm: 'search',
-        caseSensitive: false,
-        customFilters: {
-          deleted: (value) => value === 'true', // convert string to boolean
-          // minAge: (value) => ({ $gte: parseInt(value) }),
-          // maxAge: (value) => ({ $lte: parseInt(value) }),
-          // isActive: (value) => value === 'true',
+    // const {
+    //   enablePopulate = true,
+    //   select = '-password', // Default exclude password
+    //   withPassword = false,
+    //   withDeleted = false,
+    //   populationFields = ['role', 'createdBy', 'updatedBy'],
+    // } = options;
+    // Build filters with proper typing
+    const filters: FilterQuery<Admin> = buildFilters<Admin>(queryParams, {
+      searchFields: ['firstName', 'lastName', 'email'],
+      exactMatchFields: [
+        'firstName',
+        'lastName',
+        'email',
+        'role',
+        'status',
+        'phoneNumber',
+      ],
+      searchTerm: 'search',
+      caseSensitive: false,
+      customFilters: {
+        deleted: (value) => value === 'true', // convert string to boolean
+        // minAge: (value) => ({ $gte: parseInt(value) }),
+        // maxAge: (value) => ({ $lte: parseInt(value) }),
+        // isActive: (value) => value === 'true',
+      },
+    });
+
+    // Get pagination options
+    const { skip, limit, sort, page } = getPaginationOptions(queryParams);
+
+    // Build query with population
+    let query = this.adminModel
+      .find(filters)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit);
+
+    // Apply population if enabled
+    // if (enablePopulate) {
+    //   populationFields.forEach((field) => {
+    //     switch (field) {
+    //       case 'role':
+    //         query = query.populate('role', 'name permissions');
+    //         break;
+    //       case 'createdBy':
+    //         query = query.populate('createdBy', 'firstName lastName email');
+    //         break;
+    //       case 'updatedBy':
+    //         query = query.populate('updatedBy', 'firstName lastName email');
+    //         break;
+    //       case 'permissions':
+    //         query = query.populate('permissions', 'name resource action');
+    //         break;
+    //       default:
+    //         query = query.populate(field);
+    //     }
+    //   });
+    // }
+
+    const [data, total] = await Promise.all([
+      query.exec(),
+      this.adminModel.countDocuments(filters).exec(),
+    ]);
+
+    return {
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
         },
-      });
-
-      // Get pagination options
-      const { skip, limit, sort, page } = getPaginationOptions(queryParams);
-
-      // Build query with population
-      let query = this.adminModel
-        .find(filters)
-        .sort(sort)
-        .skip(skip)
-        .limit(limit);
-
-      // Apply population if enabled
-      // if (enablePopulate) {
-      //   populationFields.forEach((field) => {
-      //     switch (field) {
-      //       case 'role':
-      //         query = query.populate('role', 'name permissions');
-      //         break;
-      //       case 'createdBy':
-      //         query = query.populate('createdBy', 'firstName lastName email');
-      //         break;
-      //       case 'updatedBy':
-      //         query = query.populate('updatedBy', 'firstName lastName email');
-      //         break;
-      //       case 'permissions':
-      //         query = query.populate('permissions', 'name resource action');
-      //         break;
-      //       default:
-      //         query = query.populate(field);
-      //     }
-      //   });
-      // }
-
-      const [data, total] = await Promise.all([
-        query.exec(),
-        this.adminModel.countDocuments(filters).exec(),
-      ]);
-
-      return {
-        error: false,
-        message: 'success',
-        status: 200,
-        data: {
-          pagination: {
-            total,
-            page,
-            limit,
-            totalPages: Math.ceil(total / limit),
-          },
-          result: data,
+        data
         },
-      };
-    } catch (err) {
-      const { message, status } = getErrorData(err);
-      return {
-        error: true,
-        message,
-        status,
-      };
-    }
   }
 
   async findOne(
@@ -198,178 +166,120 @@ export class AdminsService {
     updateObject: UpdateQuery<Admin>,
     options?: QueryOptions<Admin>,
   ) {
-    try {
-      // Hash password if being updated
-      if (updateObject.password) {
-        updateObject.password = await this.bcryptService.hash(
-          updateObject.password,
-        );
-      }
-      const updatedDoc = await this.adminModel
-        .findOneAndUpdate(filter, updateObject, options)
-        .exec();
-
-      if (!updatedDoc) {
-        return {
-          error: true,
-          message: 'Record not found.',
-          status: 404,
-        };
-      }
-      return {
-        error: false,
-        message: 'Updated successfully',
-        status: 200,
-        data: { updatedDoc },
-      };
-    } catch (err) {
-      const { message, status } = getErrorData(err);
-      return {
-        error: true,
-        message,
-        status,
-      };
+    // Hash password if being updated
+    if (updateObject.password) {
+      updateObject.password = await this.bcryptService.hash(
+        updateObject.password,
+      );
     }
+    const updatedDoc = await this.adminModel
+      .findOneAndUpdate(filter, updateObject, options)
+      .exec();
+
+    if (!updatedDoc) {
+      throw new NotFoundException('Record not found.');
+    }
+    return {
+      message: 'Updated successfully.',
+      data: { updatedDoc },
+    };
   }
 
   async updateOne(
     filter: FilterQuery<Admin>,
     updateObject: UpdateQuery<Admin>,
   ) {
-    try {
-      // Create update object without mutating the DTO
-      const updateData = {
-        ...updateObject,
-        updatedAt: new Date(),
-      };
-      // Hash password if being updated
-      if (updateObject.password) {
-        updateData.password = await this.bcryptService.hash(
-          updateObject.password,
-        );
-      }
-      const result = await this.adminModel.updateOne(filter, updateData, {
-        runValidators: true,
-      });
-      if (result.matchedCount === 0) {
-        return { error: true, message: 'Record not found.', status: 404 };
-      }
-      if (result.modifiedCount === 0) {
-        return {
-          error: false,
-          message: 'No changes made.',
-          status: 304,
-          data: {},
-        };
-      }
-      return {
-        error: false,
-        message: 'Updated successfully.',
-        status: 200,
-        data: { modifiedCount: result.modifiedCount },
-      };
-    } catch (err) {
-      const { message, status } = getErrorData(err);
-      return {
-        error: true,
-        message,
-        status,
-      };
+    // Create update object without mutating the DTO
+    const updateData = {
+      ...updateObject,
+      updatedAt: new Date(),
+    };
+    // Hash password if being updated
+    if (updateObject.password) {
+      updateData.password = await this.bcryptService.hash(
+        updateObject.password,
+      );
     }
+    const result = await this.adminModel.updateOne(filter, updateData, {
+      runValidators: true,
+    });
+    if (result.matchedCount === 0) {
+      throw new NotFoundException('Record not found.');
+    }
+    if (result.modifiedCount === 0) {
+      throw new ConflictException('No changes made.');
+    }
+    return {
+      message: 'Updated successfully.',
+      data: { modifiedCount: result.modifiedCount },
+    };
   }
 
   async updateMany(
     filter: FilterQuery<Admin>,
     updateObject: UpdateQuery<Admin>,
   ) {
-    try {
-      // Note: Passwords cannot be updated via bulk operations for security
-      const result = await this.adminModel.updateMany(filter, updateObject, {
-        runValidators: true,
-      });
-      if (result.matchedCount === 0) {
-        return { error: true, message: 'No records found.', status: 404 };
-      }
-      if (result.modifiedCount === 0) {
-        return { error: false, message: 'No changes made.', status: 304 };
-      }
-      return {
-        error: false,
-        message: `Updated ${result.modifiedCount} record(s) successfully.`,
-        status: 200,
-        data: {
-          matchedCount: result.matchedCount,
-          modifiedCount: result.modifiedCount,
-        },
-      };
-    } catch (err) {
-      const { message, status } = getErrorData(err);
-      return {
-        error: true,
-        message,
-        status,
-      };
+    // Note: Passwords cannot be updated via bulk operations for security
+    const result = await this.adminModel.updateMany(filter, updateObject, {
+      runValidators: true,
+    });
+    if (result.matchedCount === 0) {
+      return { error: true, message: 'No records found.', status: 404 };
     }
+    if (result.modifiedCount === 0) {
+      return { error: false, message: 'No changes made.', status: 304 };
+    }
+    return {
+      error: false,
+      message: `Updated ${result.modifiedCount} record(s) successfully.`,
+      status: 200,
+      data: {
+        matchedCount: result.matchedCount,
+        modifiedCount: result.modifiedCount,
+      },
+    };
   }
 
   async softDelete(filter: FilterQuery<Admin>) {
-    try {
-      const result = await this.adminModel.findOneAndUpdate(
-        filter,
-        {
-          deleted: true,
-          deletedAt: new Date(),
-          updatedAt: new Date(),
-        },
-        { new: true },
-      );
-      if (!result) {
-        return {
-          error: true,
-          message: 'Record not found.',
-          status: 404,
-        };
-      }
-      return {
-        error: false,
-        message: 'Record soft deleted successfully.',
-        status: 200,
-        data: { deletedAt: result.deletedAt },
-      };
-    } catch (err) {
-      const { message, status } = getErrorData(err);
+    const result = await this.adminModel.findOneAndUpdate(
+      filter,
+      {
+        deleted: true,
+        deletedAt: new Date(),
+        updatedAt: new Date(),
+      },
+      { new: true },
+    );
+    if (!result) {
       return {
         error: true,
-        message,
-        status,
+        message: 'Record not found.',
+        status: 404,
       };
     }
+    return {
+      error: false,
+      message: 'Record soft deleted successfully.',
+      status: 200,
+      data: { deletedAt: result.deletedAt },
+    };
   }
 
   async hardDelete(filter: FilterQuery<Admin>) {
-    try {
-      const result = await this.adminModel.findOneAndDelete(filter);
-      if (!result) {
-        return {
-          error: true,
-          message: 'Record not found.',
-          status: 404,
-        };
-      }
-      return {
-        error: false,
-        message: 'Record permanently deleted successfully.',
-        status: 200,
-        data: { deletedId: result._id },
-      };
-    } catch (err) {
-      const { message, status } = getErrorData(err);
+    const result = await this.adminModel.findOneAndDelete(filter);
+    if (!result) {
       return {
         error: true,
-        message,
-        status,
+        message: 'Record not found.',
+        status: 404,
       };
     }
+    return {
+      error: false,
+      message: 'Record permanently deleted successfully.',
+      status: 200,
+      data: { deletedId: result._id },
+    };
   }
 
   async aggregate<T = any>(
@@ -380,21 +290,12 @@ export class AdminsService {
     status: number;
     data?: T[];
   }> {
-    try {
-      const result = await this.adminModel.aggregate(pipeline).exec();
-      return {
-        error: false,
-        message: 'Aggregation completed successfully.',
-        status: 200,
-        data: result,
-      };
-    } catch (err) {
-      const { message, status } = getErrorData(err);
-      return {
-        error: true,
-        message,
-        status,
-      };
-    }
+    const result = await this.adminModel.aggregate(pipeline).exec();
+    return {
+      error: false,
+      message: 'Aggregation completed successfully.',
+      status: 200,
+      data: result,
+    };
   }
 }
