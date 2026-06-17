@@ -1,4 +1,11 @@
-import { HttpException, BadRequestException, NotFoundException, ConflictException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  BadRequestException,
+  NotFoundException,
+  ConflictException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import {
   Model,
@@ -10,7 +17,6 @@ import {
   ProjectionType,
 } from 'mongoose';
 
-import { getErrorData } from 'src/common/helpers/error.helper';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { Admin, AdminDocument } from './schemas/admin.schema';
@@ -112,14 +118,14 @@ export class AdminsService {
     ]);
 
     return {
-        pagination: {
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-        },
-        data
-        },
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+      data,
+    };
   }
 
   async findOne(
@@ -206,9 +212,7 @@ export class AdminsService {
     if (result.matchedCount === 0) {
       throw new NotFoundException('Record not found.');
     }
-    if (result.modifiedCount === 0) {
-      throw new ConflictException('No changes made.');
-    }
+    // if (result.modifiedCount === 0) {}
     return {
       message: 'Updated successfully.',
       data: { modifiedCount: result.modifiedCount },
@@ -224,15 +228,11 @@ export class AdminsService {
       runValidators: true,
     });
     if (result.matchedCount === 0) {
-      return { error: true, message: 'No records found.', status: 404 };
+      throw new NotFoundException('No records found.');
     }
-    if (result.modifiedCount === 0) {
-      return { error: false, message: 'No changes made.', status: 304 };
-    }
+    // if (result.modifiedCount === 0) {}
     return {
-      error: false,
       message: `Updated ${result.modifiedCount} record(s) successfully.`,
-      status: 200,
       data: {
         matchedCount: result.matchedCount,
         modifiedCount: result.modifiedCount,
@@ -251,16 +251,10 @@ export class AdminsService {
       { new: true },
     );
     if (!result) {
-      return {
-        error: true,
-        message: 'Record not found.',
-        status: 404,
-      };
+      throw new NotFoundException('Record not found.');
     }
     return {
-      error: false,
       message: 'Record soft deleted successfully.',
-      status: 200,
       data: { deletedAt: result.deletedAt },
     };
   }
@@ -268,16 +262,10 @@ export class AdminsService {
   async hardDelete(filter: FilterQuery<Admin>) {
     const result = await this.adminModel.findOneAndDelete(filter);
     if (!result) {
-      return {
-        error: true,
-        message: 'Record not found.',
-        status: 404,
-      };
+      throw new NotFoundException('Record not found.');
     }
     return {
-      error: false,
       message: 'Record permanently deleted successfully.',
-      status: 200,
       data: { deletedId: result._id },
     };
   }
@@ -285,16 +273,12 @@ export class AdminsService {
   async aggregate<T = any>(
     pipeline: PipelineStage[],
   ): Promise<{
-    error: boolean;
     message: string;
-    status: number;
     data?: T[];
   }> {
     const result = await this.adminModel.aggregate(pipeline).exec();
     return {
-      error: false,
       message: 'Aggregation completed successfully.',
-      status: 200,
       data: result,
     };
   }

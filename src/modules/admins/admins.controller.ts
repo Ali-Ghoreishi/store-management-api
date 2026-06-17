@@ -10,26 +10,29 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import Res from '../../common/helpers/response.helper';
-import { getErrorData } from 'src/common/helpers/error.helper';
+import Res from 'src/common/helpers/response.helper';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth/jwt-auth.guard';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/enums/roles.enum';
 import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { ConfigService } from '@nestjs/config';
 import { QueryAdminDto } from './dto/query-admin.dto';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth/jwt-auth.guard';
 
 @Controller('admins')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class AdminsController {
   constructor(
     private readonly adminsService: AdminsService,
     private readonly configService: ConfigService,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get()
+  @Roles(Role.Admin, Role.Manager)
   async findAll(@Query() queryParams: QueryAdminDto) {
     const result = await this.adminsService.findAll(queryParams);
-    if (result) return Res.ok(result.data);
+    if (result) return Res.ok(result);
   }
 }

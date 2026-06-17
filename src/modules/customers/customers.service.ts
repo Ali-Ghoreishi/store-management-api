@@ -1,4 +1,11 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  BadRequestException,
+  UnauthorizedException,
+  HttpStatus,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import {
   Model,
@@ -33,88 +40,82 @@ export class CustomersService {
   ) {}
 
   async registerSelf(createCustomerDto: CreateCustomerDto) {
-      const verifyCode = Helper.generateRandomCode(5);
-      // 1. Check for duplicate email
-      const duplicateEmail = await this.findByEmail(createCustomerDto.email);
-      if (duplicateEmail) {
-        return {
-          error: true,
-          message: 'Customer already exists.',
-          status: 400,
-        };
-      }
-      // 2. Hash password
-      const hashedPassword = await this.bcryptService.hash(
-        createCustomerDto.password,
-      );
-      createCustomerDto.password = hashedPassword;
-      const createdCustomer = new this.customerModel({
-        ...createCustomerDto,
-        emailVerify: {
-          code: verifyCode,
-          lastRequestTime: new Date(),
-          attempts: 1,
+    const verifyCode = Helper.generateRandomCode(5);
+    // 1. Check for duplicate email
+    const duplicateEmail = await this.findByEmail(createCustomerDto.email);
+    if (duplicateEmail) {
+      throw new BadRequestException('Customer already exists.');
+    }
+    // 2. Hash password
+    const hashedPassword = await this.bcryptService.hash(
+      createCustomerDto.password,
+    );
+    createCustomerDto.password = hashedPassword;
+    const createdCustomer = new this.customerModel({
+      ...createCustomerDto,
+      emailVerify: {
+        code: verifyCode,
+        lastRequestTime: new Date(),
+        attempts: 1,
+      },
+    });
+    await createdCustomer.save();
+    const { password, emailVerify, ...result } = createdCustomer.toObject();
+
+    // Send welcome email via RabbitMQ
+    {
+      const isEmailSent = await this.rabbitMQService.sendToQueue(
+        QUEUES.EMAIL_QUEUE,
+        {
+          event: EVENTS.EMAIL_WELCOME_CUSTOMER,
+          data: {
+            email: createdCustomer.email,
+            name: createdCustomer.firstName,
+            customerId: createdCustomer._id.toString(),
+          },
+          timestamp: new Date(),
         },
-      });
-      await createdCustomer.save();
-      const { password, emailVerify, ...result } = createdCustomer.toObject();
-
-      // Send welcome email via RabbitMQ
-      {
-        const isEmailSent = await this.rabbitMQService.sendToQueue(
-          QUEUES.EMAIL_QUEUE,
-          {
-            event: EVENTS.EMAIL_WELCOME_CUSTOMER,
-            data: {
-              email: createdCustomer.email,
-              name: createdCustomer.firstName,
-              customerId: createdCustomer._id.toString(),
-            },
-            timestamp: new Date(),
-          },
+      );
+      if (!isEmailSent) {
+        this.logger.warn(
+          `Failed to queue welcome email for ${createdCustomer.email}, customerId: ${createdCustomer._id.toString()}`,
         );
-        if (!isEmailSent) {
-          this.logger.warn(
-            `Failed to queue welcome email for ${createdCustomer.email}, customerId: ${createdCustomer._id.toString()}`,
-          );
-        } else {
-          this.logger.log(
-            `Welcome email queued successfully for ${createdCustomer.email}`,
-          );
-        }
-      }
-
-      // Send Verify Account Code via RabbitMQ
-      {
-        const isEmailSent = await this.rabbitMQService.sendToQueue(
-          QUEUES.EMAIL_QUEUE,
-          {
-            event: EVENTS.EMAIL_VERIFY_ACCOUNT,
-            data: {
-              email: createdCustomer.email,
-              name: createdCustomer.firstName,
-              code: verifyCode,
-            },
-            timestamp: new Date(),
-          },
+      } else {
+        this.logger.log(
+          `Welcome email queued successfully for ${createdCustomer.email}`,
         );
-        if (!isEmailSent) {
-          this.logger.warn(
-            `Failed to queue welcome email for ${createdCustomer.email}, customerId: ${createdCustomer._id.toString()}`,
-          );
-        } else {
-          this.logger.log(
-            `Welcome email queued successfully for ${createdCustomer.email}`,
-          );
-        }
       }
+    }
 
-      return {
-        error: false,
-        message: 'success',
-        status: 201,
-        data: result as CustomerDocument,
-      };
+    // Send Verify Account Code via RabbitMQ
+    {
+      const isEmailSent = await this.rabbitMQService.sendToQueue(
+        QUEUES.EMAIL_QUEUE,
+        {
+          event: EVENTS.EMAIL_VERIFY_ACCOUNT,
+          data: {
+            email: createdCustomer.email,
+            name: createdCustomer.firstName,
+            code: verifyCode,
+          },
+          timestamp: new Date(),
+        },
+      );
+      if (!isEmailSent) {
+        this.logger.warn(
+          `Failed to queue welcome email for ${createdCustomer.email}, customerId: ${createdCustomer._id.toString()}`,
+        );
+      } else {
+        this.logger.log(
+          `Welcome email queued successfully for ${createdCustomer.email}`,
+        );
+      }
+    }
+
+    return {
+      message: 'success',
+      data: result as CustomerDocument,
+    };
   }
 
   // async createByAdmin(createCustomerDto: CreateCustomerDto) {
@@ -272,66 +273,66 @@ export class CustomersService {
     updateObject: UpdateQuery<Customer>,
     options?: QueryOptions<Customer>,
   ) {
-      // Hash password if being updated
-      if (updateObject.password) {
-        updateObject.password = await this.bcryptService.hash(
-          updateObject.password,
-        );
-      }
-      const updatedDoc = await this.customerModel
-        .findOneAndUpdate(filter, updateObject, options)
-        .exec();
+    // Hash password if being updated
+    if (updateObject.password) {
+      updateObject.password = await this.bcryptService.hash(
+        updateObject.password,
+      );
+    }
+    const updatedDoc = await this.customerModel
+      .findOneAndUpdate(filter, updateObject, options)
+      .exec();
 
-      if (!updatedDoc) {
-        return {
-          error: true,
-          message: 'Record not found.',
-          status: 404,
-        };
-      }
+    if (!updatedDoc) {
       return {
-        error: false,
-        message: 'Updated successfully',
-        status: 200,
-        data: { updatedDoc },
+        error: true,
+        message: 'Record not found.',
+        status: 404,
       };
+    }
+    return {
+      error: false,
+      message: 'Updated successfully',
+      status: 200,
+      data: { updatedDoc },
+    };
   }
 
   async updateOne(
     filter: FilterQuery<Customer>,
     updateObject: UpdateQuery<Customer>,
   ) {
-      // Create update object without mutating the DTO
-      const updateData = {
-        ...updateObject,
-        updatedAt: new Date(),
-      };
-      // Hash password if being updated
-      if (updateObject.password) {
-        updateData.password = await this.bcryptService.hash(
-          updateObject.password,
-        );
-      }
-      const result = await this.customerModel.updateOne(filter, updateData, {
-        runValidators: true,
-      });
-      if (result.matchedCount === 0) {
-        return { error: true, message: 'Record not found.', status: 404 };
-      }
-      if (result.modifiedCount === 0) {
-        return {
-          error: false,
-          message: 'No changes made.',
-          status: 304,
-          data: {},
-        };
-      }
+    // Create update object without mutating the DTO
+    const updateData = {
+      ...updateObject,
+      updatedAt: new Date(),
+    };
+    // Hash password if being updated
+    if (updateObject.password) {
+      updateData.password = await this.bcryptService.hash(
+        updateObject.password,
+      );
+    }
+    const result = await this.customerModel.updateOne(filter, updateData, {
+      runValidators: true,
+    });
+    if (result.matchedCount === 0) {
+      return { error: true, message: 'Record not found.', status: 404 };
+    }
+    if (result.modifiedCount === 0) {
       return {
         error: false,
-        message: 'Updated successfully.',
-        status: 200,
-        data: { modifiedCount: result.modifiedCount },
+        message: 'No changes made.',
+        status: 304,
+        data: {},
       };
+    }
+    return {
+      error: false,
+      message: 'Updated successfully.',
+      status: 200,
+      data: { modifiedCount: result.modifiedCount },
+    };
   }
 
   // async updateMany(

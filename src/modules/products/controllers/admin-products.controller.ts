@@ -14,17 +14,17 @@ import {
 } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 
+import Res from 'src/common/helpers/response.helper';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth/jwt-auth.guard';
+import { AuthUser } from 'src/common/types/global.type';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/enums/roles.enum';
 import { ProductsService } from '../products.service';
 import { AdminsService } from 'src/modules/admins/admins.service';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
-import { AuthUser } from 'src/common/types/global.type';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth/jwt-auth.guard';
-import { Role } from 'src/common/enums/roles.enum';
 import { QueryProductDto } from '../dto/query-product.dto';
-import Res from 'src/common/helpers/response.helper';
 
 @Controller('admin/products')
 @UseGuards(JwtAuthGuard, RolesGuard)

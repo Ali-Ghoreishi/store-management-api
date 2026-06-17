@@ -1,7 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
 
 export class Res {
-  static ok(data: any = {}, message = 'Success.') {
+  static ok(data: any = {}, message = 'Request completed successfully.') {
     return {
       success: true,
       message,
@@ -11,7 +11,7 @@ export class Res {
     };
   }
 
-  static created(data: any = {}, message = 'Created.') {
+  static created(data: any = {}, message = 'Resource created successfully.') {
     return {
       success: true,
       message,

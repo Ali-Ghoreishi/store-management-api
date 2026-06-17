@@ -10,8 +10,7 @@ import {
   HttpException,
 } from '@nestjs/common';
 
-import Res from '../../common/helpers/response.helper';
-import { getErrorData } from 'src/common/helpers/error.helper';
+import Res from 'src/common/helpers/response.helper';
 import { AuthService } from './auth.service';
 import { RegisterAdminDto, RegisterCustomerDto } from './dto/register-auth.dto';
 import { LoginAdminDto, LoginCustomerDto } from './dto/login-auth.dto';
@@ -21,19 +20,16 @@ import { VerifyAccountDto } from './dto/verify-account-auth.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register/admin')
-  async registerAdmin(@Body() registerAdminDto: RegisterAdminDto) {
-    return await this.authService.registerAdmin(registerAdminDto);
-  }
-
   @Post('login/admin')
   async loginAdmin(@Body() loginAdminDto: LoginAdminDto) {
-    return await this.authService.loginAdmin(loginAdminDto);
+    const result = await this.authService.loginAdmin(loginAdminDto);
+    if (result) return Res.ok(result.data, result.message);
   }
 
   @Post('register/customer')
   async registerCustomer(@Body() registerCustomerDto: RegisterCustomerDto) {
-    return await this.authService.registerCustomer(registerCustomerDto);
+    const result = await this.authService.registerCustomer(registerCustomerDto);
+    if (result) return Res.created({});
   }
 
   @Post('login/customer')
