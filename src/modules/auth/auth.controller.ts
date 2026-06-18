@@ -34,12 +34,14 @@ export class AuthController {
 
   @Post('login/customer')
   async loginCustomer(@Body() loginCustomerDto: LoginCustomerDto) {
-    return await this.authService.loginCustomer(loginCustomerDto);
+    const result = await this.authService.loginCustomer(loginCustomerDto);
+    if (result) return Res.ok(result.data, result.message);
   }
 
   // GET /verify-account?email=user@example.com&verifyCode=123456
   @Get('verify-account')
   async verifyAccount(@Query() verifyAccountDto: VerifyAccountDto) {
-    return await this.authService.verifyAccount(verifyAccountDto);
+    const result = await this.authService.verifyAccount(verifyAccountDto);
+    if (result) return Res.ok(result.data, result.message);
   }
 }

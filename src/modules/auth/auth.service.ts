@@ -2,6 +2,7 @@ import {
   HttpException,
   BadRequestException,
   UnauthorizedException,
+  NotFoundException,
   Injectable,
 } from '@nestjs/common';
 
@@ -72,7 +73,7 @@ export class AuthService {
         // await this.sendOTPByEmail(admin.email, newCode);    //TBC
         return {
           message: 'OTP code sent successfully.',
-          data: { code: newCode },
+          data: {},
         };
       }
 
@@ -118,8 +119,11 @@ export class AuthService {
       email: loginCustomerDto.email,
     });
     if (!customer)
-      throw Res.error('Incorrect username or password. Please try again.', 401);
-    if (customer.deleted) throw Res.error('Account has been deactivated.', 401);
+      throw new UnauthorizedException(
+        'Incorrect username or password. Please try again.',
+      );
+    if (customer.deleted)
+      throw new UnauthorizedException('Account has been deactivated.');
 
     if (loginCustomerDto.loginType === 'otp') {
       if (loginCustomerDto.code) {
@@ -128,13 +132,14 @@ export class AuthService {
           `customer_otp:${customer._id.toString()}`,
         );
         if (!storedCode) {
-          throw Res.error(
+          throw new UnauthorizedException(
             'OTP code has expired. Please request a new code.',
-            401,
           );
         }
         if (storedCode !== loginCustomerDto.code) {
-          throw Res.error('Invalid OTP code. Please try again.', 401);
+          throw new UnauthorizedException(
+            'Invalid OTP code. Please try again.',
+          );
         }
         // Delete the used OTP code from Redis
         await this.redis.del(`customer_otp:${customer._id.toString()}`);
@@ -151,39 +156,43 @@ export class AuthService {
 
         // Send OTP via email or SMS
         // await this.sendOTPByEmail(customer.email, newCode);    //TBC
-        return Res.ok({ code: newCode }, 'OTP code sent successfully.');
+        return {
+          message: 'OTP code sent successfully.',
+          data: {},
+        };
       }
 
       //Login with password
     } else {
       if (!loginCustomerDto.password)
-        throw Res.error('Password is required.', 400);
+        throw new BadRequestException('Password is required.');
       if (
         !(await this.bcryptService.compare(
           loginCustomerDto.password,
           customer.password,
         ))
       ) {
-        throw Res.error(
+        throw new UnauthorizedException(
           'Incorrect username or password. Please try again.',
-          401,
         );
       }
     }
 
     const tokens = this.jwtAuthService.generateUserToken(customer);
-    // await this.customersService.
-    return Res.ok({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      userData: {
-        id: customer._id,
-        email: customer.email,
-        firstName: customer.firstName,
-        lastName: customer.lastName,
-        role: customer.role,
+    return {
+      message: 'success.',
+      data: {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        userData: {
+          id: customer._id,
+          email: customer.email,
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          role: customer.role,
+        },
       },
-    });
+    };
   }
 
   async verifyAccount(verifyAccountDto: VerifyAccountDto) {
@@ -199,13 +208,13 @@ export class AuthService {
       const customer = await this.customersService.findOneForAuth({ email });
       if (customer) user = customer;
     }
-    if (!user) throw Res.error('User not found.', 404);
+    if (!user) throw new NotFoundException('User not found.');
     const { code, status } = user.emailVerify as EmailVerification;
     if (status === 'verified') {
-      throw Res.error('Account is already verified.', 400);
+      throw new BadRequestException('Account is already verified.');
     }
     if (code !== verifyCode) {
-      throw Res.error('Invalid verification code.', 400);
+      throw new BadRequestException('Invalid verification code.');
     }
     const updateObject = {
       $set: {
@@ -232,10 +241,14 @@ export class AuthService {
         { new: true, runValidators: true },
       );
     }
-    if (!updatedDoc) {
-      throw Res.error('Failed to verify account. Please try again.', 400);
-    }
+    if (!updatedDoc)
+      throw new BadRequestException(
+        'Failed to verify account. Please try again.',
+      );
 
-    return Res.ok(null, 'Account verified successfully.');
+    return {
+      message: 'Account verified successfully.',
+      data: {},
+    };
   }
 }
