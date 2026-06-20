@@ -82,7 +82,7 @@ export class AdminsService {
 
     // Get pagination options
     const { skip, limit, sort, page } = getPaginationOptions(queryParams);
-
+    //
     // Build query with population
     let query = this.adminModel
       .find(filters)
