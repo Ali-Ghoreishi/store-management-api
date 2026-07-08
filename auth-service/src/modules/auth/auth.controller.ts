@@ -1,0 +1,43 @@
+import { Controller } from '@nestjs/common';
+import {
+  Ctx,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from '@nestjs/microservices';
+import { AuthService } from './auth.service';
+import { LoginUserDto } from './dto/login-auth.dto';
+import { RabbitMQService } from 'src/common/modules/rabbitmq/rabbitmq.service';
+
+@Controller()
+export class AuthController {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly rabbitMQService: RabbitMQService,
+  ) {}
+
+  @MessagePattern({ cmd: 'login_admin' })
+  async loginAdmin(
+    @Payload() loginUserDto: LoginUserDto,
+    @Ctx() context: RmqContext,
+  ) {
+    console.log('Auth Service -> login_admin received');
+    this.rabbitMQService.ack(context);
+    return await this.authService.loginAdmin(loginUserDto);
+  }
+
+  // @MessagePattern({ cmd: 'login_customer' })
+  // loginCustomer(@Payload() dto) {
+  //   return this.authService.loginCustomer(dto);
+  // }
+
+  // @MessagePattern({ cmd: 'register_customer' })
+  // registerCustomer(@Payload() dto) {
+  //   return this.authService.registerCustomer(dto);
+  // }
+
+  // @MessagePattern({ cmd: 'verify_account' })
+  // verifyAccount(@Payload() dto) {
+  //   return this.authService.verifyAccount(dto);
+  // }
+}

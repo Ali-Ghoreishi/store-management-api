@@ -1,6 +1,6 @@
 # compiled output
-/dist
-/node_modules
+**/dist/
+**/node_modules/
 /build
 
 # Logs
@@ -58,3 +58,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # files to ignore
 toDoList.txt
 patternFile.txt
+PROJECT_GUIDE.txt

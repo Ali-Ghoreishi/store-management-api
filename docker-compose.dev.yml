@@ -1,22 +1,22 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: nestjs_app
-    restart: unless-stopped
-    depends_on:
-      - mongodb
-      - redis
-      - rabbitmq
-    env_file:
-      - .env
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    command: yarn start:dev
-    ports:
-      - "3000:3000"
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.dev
+  #   container_name: nestjs_app
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - mongodb
+  #     - redis
+  #     - rabbitmq
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - .:/usr/src/app
+  #     - /usr/src/app/node_modules
+  #   command: yarn start:dev
+  #   ports:
+  #     - "3000:3000"
 
   mongodb:
     image: mongo:7
