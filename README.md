@@ -1,98 +1,475 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Store Management API - Microservices Architecture
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A backend system built with **NestJS + TypeScript** using a microservice architecture.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+The project is designed with independent services communicating through **RabbitMQ** and exposed through an **API Gateway**.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Architecture Overview
 
-## Project setup
+```
+                    Client
+                      |
+                      |
+                API Gateway
+              (HTTP REST API)
+                      |
+        --------------------------------
+        |              |               |
+        v              v               v
 
-```bash
-$ yarn install
+   Auth Service   User Service    Product Service
+        |
+        |
+        | RabbitMQ Events
+        |
+        v
+
+     Email Service
+        |
+        |
+       SMTP
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ yarn run start
+# Technologies
 
-# watch mode
-$ yarn run start:dev
+- Node.js
+- NestJS
+- TypeScript
+- RabbitMQ
+- MongoDB
+- JWT Authentication
+- Docker
+- Yarn
+- Nodemailer
 
-# production mode
-$ yarn run start:prod
+---
+
+# Services
+
+## API Gateway
+
+**Responsibility:**
+
+- Entry point for clients
+- Handles HTTP requests
+- Routes requests to internal services
+- Authentication guards
+- API documentation (Swagger)
+
+Communication:
+
+```
+HTTP
+ |
+ v
+Microservices
 ```
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ yarn run test
+## Auth Service
 
-# e2e tests
-$ yarn run test:e2e
+**Responsibility:**
 
-# test coverage
-$ yarn run test:cov
+- User authentication
+- Login/Register
+- JWT generation
+- Password hashing
+- Account verification
+- Authentication events
+
+Database:
+
+```
+Auth Database
 ```
 
-## Deployment
+RabbitMQ events:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Publishes:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
+```
+EMAIL_VERIFY_ACCOUNT
+EMAIL_WELCOME_USER
+EMAIL_RESET_PASSWORD
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Example:
 
-## Resources
+```ts
+rabbitClient.emit('email.verify_account', {
+  email,
+  name,
+  code,
+});
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## User Service
 
-## Support
+**Responsibility:**
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- User profile management
+- Customer information
+- User related operations
 
-## Stay in touch
+Database:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```
+User Database
+```
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Email Service
+
+**Responsibility:**
+
+- Sending emails
+- Email templates
+- SMTP communication
+
+The service does not receive HTTP requests.
+
+It only consumes RabbitMQ events.
+
+Example:
+
+```
+RabbitMQ
+    |
+    |
+EMAIL_VERIFY_ACCOUNT
+    |
+    v
+Email Consumer
+    |
+    v
+Email Service
+    |
+    v
+SMTP Server
+```
+
+---
+
+# Communication Between Services
+
+The project uses RabbitMQ for asynchronous communication.
+
+Example:
+
+User registration:
+
+```
+1. Client
+      |
+      v
+
+2. API Gateway
+
+      |
+      v
+
+3. Auth Service
+
+      |
+      |
+      | publish event
+      |
+      v
+
+4. RabbitMQ
+
+      |
+      v
+
+5. Email Service
+
+      |
+      v
+
+6. Send verification email
+```
+
+---
+
+# RabbitMQ Events
+
+Shared event names:
+
+```typescript
+EMAIL_WELCOME_USER;
+
+EMAIL_VERIFY_ACCOUNT;
+
+EMAIL_RESET_PASSWORD;
+```
+
+Example payload:
+
+```json
+{
+  "email": "user@test.com",
+  "name": "Ali",
+  "code": "123456"
+}
+```
+
+---
+
+# Project Structure
+
+```
+store-management-api/
+
+├── api-gateway/
+
+├── auth-service/
+
+├── user-service/
+
+├── email-service/
+
+├── docker-compose.yml
+
+└── README.md
+```
+
+---
+
+# Running The Project
+
+## Requirements
+
+Install:
+
+- Node.js >= 20
+- Yarn
+- Docker
+- RabbitMQ
+- MongoDB
+
+---
+
+# Environment Variables
+
+Each service has its own `.env`.
+
+Example:
+
+```
+PORT=3000
+
+RABBITMQ_URL=amqp://localhost:5672
+
+MONGO_URI=mongodb://localhost:27017/database
+
+JWT_SECRET=secret
+```
+
+---
+
+# Install Dependencies
+
+For each service:
+
+```bash
+yarn install
+```
+
+Example:
+
+```bash
+cd auth-service
+
+yarn install
+```
+
+---
+
+# Development Mode
+
+Run each service separately.
+
+## API Gateway
+
+```bash
+cd api-gateway
+
+yarn start:dev
+```
+
+---
+
+## Auth Service
+
+```bash
+cd auth-service
+
+yarn start:dev
+```
+
+---
+
+## User Service
+
+```bash
+cd user-service
+
+yarn start:dev
+```
+
+---
+
+## Email Service
+
+```bash
+cd email-service
+
+yarn start:dev
+```
+
+---
+
+# Docker Development
+
+Start infrastructure:
+
+```bash
+docker compose up -d
+```
+
+Services started:
+
+- MongoDB
+- RabbitMQ
+- Redis (if enabled)
+
+---
+
+# RabbitMQ Management
+
+RabbitMQ dashboard:
+
+```
+http://localhost:15672
+```
+
+Default:
+
+```
+username: guest
+password: guest
+```
+
+---
+
+# Message Acknowledgement
+
+Consumers acknowledge messages after successful processing.
+
+Example:
+
+```typescript
+this.rabbitMQService.ack(context);
+```
+
+Meaning:
+
+```
+Message processed successfully
+Remove message from queue
+```
+
+Failed messages:
+
+```typescript
+this.rabbitMQService.nack(context);
+```
+
+Meaning:
+
+```
+Message processing failed
+Reject message
+```
+
+---
+
+# Database Strategy
+
+Each microservice owns its database.
+
+Example:
+
+```
+Auth Service
+     |
+     v
+ Auth Database
+
+
+User Service
+     |
+     v
+ User Database
+
+
+Product Service
+     |
+     v
+ Product Database
+```
+
+Services do not directly access each other's databases.
+
+---
+
+# Deployment Concept
+
+Each service can be deployed independently.
+
+Example:
+
+```
+Server
+
+├── api-gateway container
+
+├── auth-service container
+
+├── user-service container
+
+├── email-service container
+
+├── rabbitmq container
+
+└── mongodb container
+```
+
+---
+
+# Future Improvements
+
+- Add Order Service
+- Add Product Service
+- Add Notification Service
+- Add shared package for DTOs/events
+- Add Kubernetes deployment
+- Add CI/CD pipeline
+- Add centralized logging
+- Add monitoring
+
+---
+
+# Author
+
+Backend Developer
+
+Node.js / NestJS
