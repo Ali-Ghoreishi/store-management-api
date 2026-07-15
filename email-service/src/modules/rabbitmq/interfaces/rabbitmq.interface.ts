@@ -1,3 +1,5 @@
+
+
 export interface RabbitMQConfig {
   urls: string[];
   queue: string;

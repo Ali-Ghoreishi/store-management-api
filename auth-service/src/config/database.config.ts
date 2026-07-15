@@ -32,7 +32,6 @@ function buildMongoUri(): string {
   const authSource = process.env.DB_AUTH_SOURCE || 'admin';
 
   if (user && pass) {
-    console.log(user, ' --- ', pass);
     return `mongodb://${user}:${pass}@${host}:${port}/${name}?authSource=${authSource}`;
   }
 

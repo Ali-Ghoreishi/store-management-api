@@ -3,7 +3,10 @@ import { RabbitMQService } from '../../modules/rabbitmq/rabbitmq.service';
 import { EmailService } from './email.service';
 import { QUEUES, EVENTS } from '../../modules/rabbitmq/rabbitmq.constants';
 import { RabbitMQMessage } from '../rabbitmq/interfaces/rabbitmq.interface';
-import { VerifyAccountEmailData, WelcomeEmailData } from './interfaces/email.interface';
+import {
+  VerifyAccountEmailData,
+  WelcomeEmailData,
+} from './interfaces/email.interface';
 
 @Injectable()
 export class EmailConsumer implements OnModuleInit {

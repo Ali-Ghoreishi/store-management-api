@@ -4,30 +4,20 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 // import { AppController } from './app.controller';
 // import { AppService } from './app.service';
 import appConfig from './config/app.config';
-import databaseConfig from './config/database.config';
-import { DatabaseModule } from './database/database.module';
-import { UsersModule } from './modules/users/users.module';
 import { LoggerMiddleware } from './common/middleware/logger/logger.middleware';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from './modules/auth/auth.module';
-import { RabbitMQModule } from './common/modules/rabbitmq/rabbitmq.module';
+import { EmailModule } from './modules/email/email.module';
+import { RabbitMQModule } from './modules/rabbitmq/rabbitmq.module';
 
 @Module({
-  controllers: [
-    /* AppController */
-  ],
-  providers: [
-    /* AppService */
-  ],
+  controllers: [/* AppController */],
+  providers: [/* AppService */],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig],
+      load: [appConfig],
     }),
-    // CommonModule,
-    DatabaseModule,
-    UsersModule,
-    AuthModule,
+    EmailModule,
     RabbitMQModule,
   ],
 })

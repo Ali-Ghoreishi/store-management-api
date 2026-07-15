@@ -34,85 +34,84 @@ export class AuthService {
     const user = await this.usersService.findOneForAuth({
       email: loginUserDto.email,
     });
-    return { data: user };
-    // if (!user)
-    //   throw new UnauthorizedException(
-    //     'Incorrect username or password. Please try again.',
-    //   );
-    // if (user.deleted)
-    //   throw new UnauthorizedException('Account has been deactivated.');
+    if (!user)
+      throw new UnauthorizedException(
+        'Incorrect username or password. Please try again.',
+      );
+    if (user.deleted)
+      throw new UnauthorizedException('Account has been deactivated.');
 
-    // if (loginUserDto.loginType === 'otp') {
-    //   if (loginUserDto.code) {
-    //     // Step 2: Verify OTP code and complete login
-    //     const storedCode = await this.redis.get(
-    //       `admin_otp:${user._id.toString()}`,
-    //     );
-    //     if (!storedCode) {
-    //       throw new UnauthorizedException(
-    //         'OTP code has expired. Please request a new code.',
-    //       );
-    //     }
-    //     if (storedCode !== loginUserDto.code) {
-    //       throw new UnauthorizedException(
-    //         'Invalid OTP code. Please try again.',
-    //       );
-    //     }
-    //     // Delete the used OTP code from Redis
-    //     await this.redis.del(`admin_otp:${user._id.toString()}`);
-    //   } else {
-    //     // Step 1: Generate and send OTP code
-    //     const newCode = Helper.generateRandomCode(6);
+    if (loginUserDto.loginType === 'otp') {
+      if (loginUserDto.code) {
+        // Step 2: Verify OTP code and complete login
+        const storedCode = await this.redis.get(
+          `admin_otp:${user._id.toString()}`,
+        );
+        if (!storedCode) {
+          throw new UnauthorizedException(
+            'OTP code has expired. Please request a new code.',
+          );
+        }
+        if (storedCode !== loginUserDto.code) {
+          throw new UnauthorizedException(
+            'Invalid OTP code. Please try again.',
+          );
+        }
+        // Delete the used OTP code from Redis
+        await this.redis.del(`admin_otp:${user._id.toString()}`);
+      } else {
+        // Step 1: Generate and send OTP code
+        const newCode = Helper.generateRandomCode(6);
 
-    //     // Store OTP in Redis with expiration (5 minutes)
-    //     await this.redis.setex(
-    //       `admin_otp:${user._id.toString()}`,
-    //       300, // 5 minutes in seconds
-    //       newCode,
-    //     );
+        // Store OTP in Redis with expiration (5 minutes)
+        await this.redis.setex(
+          `admin_otp:${user._id.toString()}`,
+          300, // 5 minutes in seconds
+          newCode,
+        );
 
-    //     // Send OTP via email or SMS
-    //     // await this.sendOTPByEmail(user.email, newCode);    //TBC
-    //     return {
-    //       message: 'OTP code sent successfully.',
-    //       data: {},
-    //     };
-    //   }
+        // Send OTP via email or SMS
+        // await this.sendOTPByEmail(user.email, newCode);    //TBC
+        return {
+          message: 'OTP code sent successfully.',
+          data: {},
+        };
+      }
 
-    //   //Login with password
-    // } else {
-    //   if (!loginUserDto.password)
-    //     throw new BadRequestException('Password is required.');
-    //   if (
-    //     !(await this.bcryptService.compare(
-    //       loginUserDto.password,
-    //       user.password,
-    //     ))
-    //   ) {
-    //     throw new UnauthorizedException(
-    //       'Incorrect username or password. Please try again.',
-    //     );
-    //   }
-    // }
+      //Login with password
+    } else {
+      if (!loginUserDto.password)
+        throw new BadRequestException('Password is required.');
+      if (
+        !(await this.bcryptService.compare(
+          loginUserDto.password,
+          user.password,
+        ))
+      ) {
+        throw new UnauthorizedException(
+          'Incorrect username or password. Please try again.',
+        );
+      }
+    }
 
-    // const tokens = this.jwtAuthService.generateUserToken(user);
-    // return {
-    //   message: 'success.',
-    //   data: {
-    //     accessToken: tokens.accessToken,
-    //     refreshToken: tokens.refreshToken,
-    //     userData: {
-    //       id: user._id,
-    //       email: user.email,
-    //       role: user.role,
-    //     },
-    //   },
-    // };
+    const tokens = this.jwtAuthService.generateUserToken(user);
+    return {
+      message: 'success.',
+      data: {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        userData: {
+          id: user._id,
+          email: user.email,
+          role: user.role,
+        },
+      },
+    };
   }
 
-  // async registerCustomer(registerCustomerDto: RegisterCustomerDto) {
-  //   return await this.customersService.registerSelf(registerCustomerDto);
-  // }
+  async registerCustomer(registerCustomerDto: RegisterCustomerDto) {
+    return await this.usersService.registerSelf(registerCustomerDto);
+  }
 
   // async loginCustomer(loginCustomerDto: LoginCustomerDto) {
   //   const customer = await this.customersService.findOneForAuth({

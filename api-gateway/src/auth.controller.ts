@@ -13,18 +13,18 @@ export class AuthController {
     return this.authClient.send({ cmd: 'login_admin' }, dto);
   }
 
-  @Post('login/customer')
-  loginCustomer(@Body() dto: any) {
-    return this.authClient.send({ cmd: 'login_customer' }, dto);
-  }
+  // @Post('login/customer')
+  // loginCustomer(@Body() dto: any) {
+  //   return this.authClient.send({ cmd: 'login_customer' }, dto);
+  // }
 
   @Post('register/customer')
   registerCustomer(@Body() dto: any) {
     return this.authClient.send({ cmd: 'register_customer' }, dto);
   }
 
-  @Post('verify')
-  verify(@Body() dto: any) {
-    return this.authClient.send({ cmd: 'verify_account' }, dto);
-  }
+  // @Post('verify')
+  // verify(@Body() dto: any) {
+  //   return this.authClient.send({ cmd: 'verify_account' }, dto);
+  // }
 }
