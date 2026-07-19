@@ -94,7 +94,8 @@ export class UsersService {
         RabbitMQServices.USER,
         RabbitMQEvents.USER_CREATED,
         {
-          ...createdUser,
+          ...createCustomerDto,
+          password: hashedPassword,
         },
       );
     }

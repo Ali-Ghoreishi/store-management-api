@@ -23,10 +23,10 @@ import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { Customer, CustomerDocument } from './schemas/customer.schema';
 import { BcryptService } from 'src/common/services/bcrypt.service';
 import { RabbitMQService } from '../../common/modules/rabbitmq/rabbitmq.service';
-import {
-  QUEUES,
-  EVENTS,
-} from '../../common/modules/rabbitmq/rabbitmq.constants';
+// import {
+//   QUEUES,
+//   EVENTS,
+// } from 'src/common/modules/rabbitmq/constants/events';
 import Helper from 'src/utils/helpers';
 
 @Injectable()
@@ -40,81 +40,19 @@ export class CustomersService {
   ) {}
 
   async registerSelf(createCustomerDto: CreateCustomerDto) {
-    const verifyCode = Helper.generateRandomCode(5);
-    // 1. Check for duplicate email
-    const duplicateEmail = await this.findByEmail(createCustomerDto.email);
-    if (duplicateEmail) {
-      throw new BadRequestException('Customer already exists.');
-    }
-    // 2. Hash password
-    const hashedPassword = await this.bcryptService.hash(
-      createCustomerDto.password,
-    );
-    createCustomerDto.password = hashedPassword;
+    const { firstName, lastName, email, password, phoneNumber } =
+      createCustomerDto;
     const createdCustomer = new this.customerModel({
-      ...createCustomerDto,
-      emailVerify: {
-        code: verifyCode,
-        lastRequestTime: new Date(),
-        attempts: 1,
-      },
+      firstName,
+      lastName,
+      email,
+      password,
+      phoneNumber,
     });
     await createdCustomer.save();
-    const { password, emailVerify, ...result } = createdCustomer.toObject();
-
-    // Send welcome email via RabbitMQ
-    {
-      const isEmailSent = await this.rabbitMQService.sendToQueue(
-        QUEUES.EMAIL_QUEUE,
-        {
-          event: EVENTS.EMAIL_WELCOME_CUSTOMER,
-          data: {
-            email: createdCustomer.email,
-            name: createdCustomer.firstName,
-            customerId: createdCustomer._id.toString(),
-          },
-          timestamp: new Date(),
-        },
-      );
-      if (!isEmailSent) {
-        this.logger.warn(
-          `Failed to queue welcome email for ${createdCustomer.email}, customerId: ${createdCustomer._id.toString()}`,
-        );
-      } else {
-        this.logger.log(
-          `Welcome email queued successfully for ${createdCustomer.email}`,
-        );
-      }
-    }
-
-    // Send Verify Account Code via RabbitMQ
-    {
-      const isEmailSent = await this.rabbitMQService.sendToQueue(
-        QUEUES.EMAIL_QUEUE,
-        {
-          event: EVENTS.EMAIL_VERIFY_ACCOUNT,
-          data: {
-            email: createdCustomer.email,
-            name: createdCustomer.firstName,
-            code: verifyCode,
-          },
-          timestamp: new Date(),
-        },
-      );
-      if (!isEmailSent) {
-        this.logger.warn(
-          `Failed to queue welcome email for ${createdCustomer.email}, customerId: ${createdCustomer._id.toString()}`,
-        );
-      } else {
-        this.logger.log(
-          `Welcome email queued successfully for ${createdCustomer.email}`,
-        );
-      }
-    }
-
     return {
       message: 'success',
-      data: result as CustomerDocument,
+      // data: result as CustomerDocument,
     };
   }
 
