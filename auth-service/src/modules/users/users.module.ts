@@ -14,6 +14,6 @@ import { BcryptService } from 'src/common/services/bcrypt.service';
   ],
   controllers: [],
   providers: [UsersService, BcryptService],
-  exports: [UsersService],
+  exports: [UsersService, MongooseModule],
 })
 export class UsersModule {}

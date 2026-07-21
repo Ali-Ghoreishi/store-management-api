@@ -52,7 +52,6 @@ export class CustomersService {
     await createdCustomer.save();
     return {
       message: 'success',
-      // data: result as CustomerDocument,
     };
   }
 

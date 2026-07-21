@@ -2,14 +2,16 @@ import { Module, Global } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import databaseConfig from '../config/database.config';
-// import { AdminSeeder } from './seeders/admin.seeder';
-// import { DatabaseSeederService } from './seeders/database-seeder.service';
+import { AdminSeeder } from './seeders/admin.seeder';
+import { DatabaseSeederService } from './seeders/database-seeder.service';
 import { BcryptService } from 'src/common/services/bcrypt.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UsersModule } from 'src/modules/users/users.module';
 
 @Global()
 @Module({
   imports: [
+    UsersModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -66,6 +68,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
   ],
   exports: [RedisModule, MongooseModule],
-  providers: [BcryptService /* AdminSeeder */ /* DatabaseSeederService */],
+  providers: [BcryptService, AdminSeeder, DatabaseSeederService],
 })
 export class DatabaseModule {}
