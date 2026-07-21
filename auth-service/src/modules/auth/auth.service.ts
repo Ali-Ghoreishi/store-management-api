@@ -113,86 +113,84 @@ export class AuthService {
     return await this.usersService.registerSelf(registerCustomerDto);
   }
 
-  // async loginCustomer(loginCustomerDto: LoginCustomerDto) {
-  //   const customer = await this.customersService.findOneForAuth({
-  //     email: loginCustomerDto.email,
-  //   });
-  //   if (!customer)
-  //     throw new UnauthorizedException(
-  //       'Incorrect username or password. Please try again.',
-  //     );
-  //   if (customer.deleted)
-  //     throw new UnauthorizedException('Account has been deactivated.');
+  async loginCustomer(loginUserDto: LoginUserDto) {
+    const user = await this.usersService.findOneForAuth({
+      email: loginUserDto.email,
+    });
+    if (!user)
+      throw new UnauthorizedException(
+        'Incorrect username or password. Please try again.',
+      );
+    if (user.deleted)
+      throw new UnauthorizedException('Account has been deactivated.');
 
-  //   if (loginCustomerDto.loginType === 'otp') {
-  //     if (loginCustomerDto.code) {
-  //       // Step 2: Verify OTP code and complete login
-  //       const storedCode = await this.redis.get(
-  //         `customer_otp:${customer._id.toString()}`,
-  //       );
-  //       if (!storedCode) {
-  //         throw new UnauthorizedException(
-  //           'OTP code has expired. Please request a new code.',
-  //         );
-  //       }
-  //       if (storedCode !== loginCustomerDto.code) {
-  //         throw new UnauthorizedException(
-  //           'Invalid OTP code. Please try again.',
-  //         );
-  //       }
-  //       // Delete the used OTP code from Redis
-  //       await this.redis.del(`customer_otp:${customer._id.toString()}`);
-  //     } else {
-  //       // Step 1: Generate and send OTP code
-  //       const newCode = Helper.generateRandomCode(6);
+    if (loginUserDto.loginType === 'otp') {
+      if (loginUserDto.code) {
+        // Step 2: Verify OTP code and complete login
+        const storedCode = await this.redis.get(
+          `customer_otp:${user._id.toString()}`,
+        );
+        if (!storedCode) {
+          throw new UnauthorizedException(
+            'OTP code has expired. Please request a new code.',
+          );
+        }
+        if (storedCode !== loginUserDto.code) {
+          throw new UnauthorizedException(
+            'Invalid OTP code. Please try again.',
+          );
+        }
+        // Delete the used OTP code from Redis
+        await this.redis.del(`customer_otp:${user._id.toString()}`);
+      } else {
+        // Step 1: Generate and send OTP code
+        const newCode = Helper.generateRandomCode(6);
 
-  //       // Store OTP in Redis with expiration (5 minutes)
-  //       await this.redis.setex(
-  //         `customer_otp:${customer._id.toString()}`,
-  //         300, // 5 minutes in seconds
-  //         newCode,
-  //       );
+        // Store OTP in Redis with expiration (5 minutes)
+        await this.redis.setex(
+          `customer_otp:${user._id.toString()}`,
+          300, // 5 minutes in seconds
+          newCode,
+        );
 
-  //       // Send OTP via email or SMS
-  //       // await this.sendOTPByEmail(customer.email, newCode);    //TBC
-  //       return {
-  //         message: 'OTP code sent successfully.',
-  //         data: {},
-  //       };
-  //     }
+        // Send OTP via email or SMS
+        // await this.sendOTPByEmail(user.email, newCode);    //TBC
+        return {
+          message: 'OTP code sent successfully.',
+          data: {},
+        };
+      }
 
-  //     //Login with password
-  //   } else {
-  //     if (!loginCustomerDto.password)
-  //       throw new BadRequestException('Password is required.');
-  //     if (
-  //       !(await this.bcryptService.compare(
-  //         loginCustomerDto.password,
-  //         customer.password,
-  //       ))
-  //     ) {
-  //       throw new UnauthorizedException(
-  //         'Incorrect username or password. Please try again.',
-  //       );
-  //     }
-  //   }
+      //Login with password
+    } else {
+      if (!loginUserDto.password)
+        throw new BadRequestException('Password is required.');
+      if (
+        !(await this.bcryptService.compare(
+          loginUserDto.password,
+          user.password,
+        ))
+      ) {
+        throw new UnauthorizedException(
+          'Incorrect username or password. Please try again.',
+        );
+      }
+    }
 
-  //   const tokens = this.jwtAuthService.generateUserToken(customer);
-  //   return {
-  //     message: 'success.',
-  //     data: {
-  //       accessToken: tokens.accessToken,
-  //       refreshToken: tokens.refreshToken,
-  //       userData: {
-  //         id: customer._id,
-  //         email: customer.email,
-  //         firstName: customer.firstName,
-  //         lastName: customer.lastName,
-  //         role: customer.role,
-  //       },
-  //     },
-  //   };
-  // }
+    const tokens = this.jwtAuthService.generateUserToken(user);
+    return {
+      message: 'success.',
+      data: {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        userData: {
+          id: user._id,
+          email: user.email,
+          role: user.role,
+        },
+      },
+    };
+  }
 
   // async verifyAccount(verifyAccountDto: VerifyAccountDto) {
   //   const { email, verifyCode } = verifyAccountDto;

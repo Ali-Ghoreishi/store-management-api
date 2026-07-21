@@ -9,6 +9,7 @@ import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-auth.dto';
 import { RegisterCustomerDto } from './dto/register-auth.dto';
 import { RabbitMQService } from 'src/common/modules/rabbitmq/rabbitmq.service';
+import { VerifyAccountDto } from './dto/verify-account-auth.dto';
 
 @Controller()
 export class AuthController {
@@ -22,15 +23,18 @@ export class AuthController {
     @Payload() loginUserDto: LoginUserDto,
     @Ctx() context: RmqContext,
   ) {
-    console.log('Auth Service -> login_admin received');
     this.rabbitMQService.ack(context);
     return await this.authService.loginAdmin(loginUserDto);
   }
 
-  // @MessagePattern({ cmd: 'login_customer' })
-  // loginCustomer(@Payload() dto) {
-  //   return this.authService.loginCustomer(dto);
-  // }
+  @MessagePattern({ cmd: 'login_customer' })
+  async loginCustomer(
+    @Payload() loginUserDto: LoginUserDto,
+    @Ctx() context: RmqContext,
+  ) {
+    this.rabbitMQService.ack(context);
+    return await this.authService.loginCustomer(loginUserDto);
+  }
 
   @MessagePattern({ cmd: 'register_customer' })
   async registerCustomer(
@@ -41,8 +45,12 @@ export class AuthController {
     return await this.authService.registerCustomer(registerCustomerDto);
   }
 
-  // @MessagePattern({ cmd: 'verify_account' })
-  // verifyAccount(@Payload() dto) {
-  //   return this.authService.verifyAccount(dto);
-  // }
+  @MessagePattern({ cmd: 'verify_account' })
+  async verifyAccount(
+    @Payload() verifyAccountDto: VerifyAccountDto,
+    @Ctx() context: RmqContext,
+  ) {
+    this.rabbitMQService.ack(context);
+    return await this.authService.verifyAccount(verifyAccountDto);
+  }
 }

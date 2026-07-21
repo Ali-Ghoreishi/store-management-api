@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { AllRpcExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
-  const tempApp = await NestFactory.createApplicationContext(AppModule);
+  const tempApp = await NestFactory.createApplicationContext(AppModule); // TBC  // Nest boots twice
   const configService = tempApp.get(ConfigService);
 
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
