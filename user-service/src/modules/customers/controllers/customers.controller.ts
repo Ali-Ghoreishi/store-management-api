@@ -12,10 +12,7 @@ import {
   CreateCustomerDto,
   AdminCreateCustomerDto,
 } from '../dto/create-customer.dto';
-import {
-  UpdateCustomerDto,
-  AdminUpdateCustomerDto,
-} from '../dto/update-customer.dto';
+import { UpdateCustomerDto } from '../dto/update-customer.dto';
 import { UpdateQuery } from 'mongoose';
 import { Customer } from '../schemas/customer.schema';
 

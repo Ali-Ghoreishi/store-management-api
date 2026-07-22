@@ -19,6 +19,10 @@ import Helper from '../../utils/helpers';
 import { UsersService } from '../users/users.service';
 import { VerifyAccountDto } from './dto/verify-account-auth.dto';
 import { EmailVerification } from 'src/common/schemas/email-verification.schema';
+import { UserType } from '../users/schemas/user.schema';
+import { RabbitMQService } from '../../common/modules/rabbitmq/rabbitmq.service';
+import { RabbitMQEvents } from 'src/common/modules/rabbitmq/constants/events';
+import { RabbitMQServices } from 'src/common/modules/rabbitmq/constants/services';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +30,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly bcryptService: BcryptService,
     private readonly jwtAuthService: JwtAuthService,
+    private readonly rabbitMQService: RabbitMQService,
     @InjectRedis() private readonly redis: Redis,
     // @Inject('AUTH_CLIENT') private readonly eventClient: ClientProxy,
   ) {}
@@ -192,60 +197,59 @@ export class AuthService {
     };
   }
 
-  // async verifyAccount(verifyAccountDto: VerifyAccountDto) {
-  //   const { email, verifyCode } = verifyAccountDto;
-  //   let userType = 'customer';
-  //   let user: Record<string, any> | null = null;
-  //   const admin = await this.adminsService.findOneForAuth({ email });
-  //   if (admin) {
-  //     userType = 'admin';
-  //     user = admin;
-  //   }
-  //   if (!admin) {
-  //     const customer = await this.customersService.findOneForAuth({ email });
-  //     if (customer) user = customer;
-  //   }
-  //   if (!user) throw new NotFoundException('User not found.');
-  //   const { code, status } = user.emailVerify as EmailVerification;
-  //   if (status === 'verified') {
-  //     throw new BadRequestException('Account is already verified.');
-  //   }
-  //   if (code !== verifyCode) {
-  //     throw new BadRequestException('Invalid verification code.');
-  //   }
-  //   const updateObject = {
-  //     $set: {
-  //       'emailVerify.code': null,
-  //       'emailVerify.status': 'verified',
-  //       'emailVerify.verifiedAt': new Date(),
-  //     },
-  //   };
-  //   let updatedDoc: Record<string, any> | null = null;
-  //   if (userType === 'admin') {
-  //     updatedDoc = await this.adminsService.findOneAndUpdate(
-  //       {
-  //         _id: user._id,
-  //       },
-  //       updateObject,
-  //       { new: true, runValidators: true },
-  //     );
-  //   } else if (userType === 'customer') {
-  //     updatedDoc = await this.customersService.findOneAndUpdate(
-  //       {
-  //         _id: user._id,
-  //       },
-  //       updateObject,
-  //       { new: true, runValidators: true },
-  //     );
-  //   }
-  //   if (!updatedDoc)
-  //     throw new BadRequestException(
-  //       'Failed to verify account. Please try again.',
-  //     );
+  async verifyAccount(verifyAccountDto: VerifyAccountDto) {
+    const { email, verifyCode } = verifyAccountDto;
+    const user = await this.usersService.findOneForAuth({ email });
+    if (!user) throw new NotFoundException('User not found.');
+    const userType = user.userType;
+    const { code, status } = user.emailVerify; /* as EmailVerification; */
+    if (status === 'verified') {
+      throw new BadRequestException('Account is already verified.');
+    }
+    if (code !== verifyCode) {
+      throw new BadRequestException('Invalid verification code.');
+    }
+    const currentTime = new Date();
+    const updateObject = {
+      $set: {
+        'emailVerify.code': null,
+        'emailVerify.status': 'verified',
+        'emailVerify.verifiedAt': currentTime,
+      },
+    };
+    const updatedDoc = await this.usersService.findOneAndUpdate(
+      {
+        _id: user._id,
+      },
+      updateObject,
+      { new: true, runValidators: true },
+    );
+    if (!updatedDoc)
+      throw new BadRequestException(
+        'Failed to verify account. Please try again.',
+      );
 
-  //   return {
-  //     message: 'Account verified successfully.',
-  //     data: {},
-  //   };
-  // }
+    // update user
+    {
+      this.rabbitMQService.emit(
+        RabbitMQServices.USER,
+        RabbitMQEvents.USER_UPDATED,
+        {
+          doc: { email: user.email },
+          updateObj: {
+            emailVerify: {
+              code: null,
+              status: 'verified',
+              verifiedAt: currentTime,
+            },
+          },
+        },
+      );
+    }
+
+    return {
+      message: 'Account verified successfully.',
+      data: {},
+    };
+  }
 }

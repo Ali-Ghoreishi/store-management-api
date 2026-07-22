@@ -28,7 +28,6 @@ export class EmailConsumer {
       this.logger.log(`Processing welcome email for ${payload.email}`);
 
       await this.emailService.sendWelcomeEmail(payload.email, payload.name);
-      console.log('--- log_handleWelcomeEmail ---');
       this.rabbitMQService.ack(context);
     } catch (error) {
       this.logger.error(

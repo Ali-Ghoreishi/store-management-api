@@ -27,11 +27,3 @@ export class UpdateCustomerDto extends PickType(CreateCustomerDto, [
   @MaxLength(50)
   password?: string;
 }
-
-export class AdminUpdateCustomerDto extends PartialType(
-  AdminCreateCustomerDto,
-) {
-  // @IsString()
-  // @IsOptional()
-  // adminNotes?: string;
-}

@@ -22,7 +22,7 @@ export class AuthController {
     return this.authClient.send({ cmd: 'register_customer' }, dto);
   }
 
-  @Get('verify')
+  @Get('verify-account')
   verify(@Query() dto: any) {
     return this.authClient.send({ cmd: 'verify_account' }, dto);
   }
